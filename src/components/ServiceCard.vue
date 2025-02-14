@@ -1,0 +1,118 @@
+<template>
+  <div class="service-card">
+    <img :src="service.image" :alt="service.title" class="service-image" />
+    <div class="service-content">
+      <h3>{{ service.title }}</h3>
+      <p class="service-description">{{ service.description }}</p>
+      <div class="service-price">от {{ service.price }} ₽/час</div>
+      <div class="service-actions">
+        <button class="btn-add-to-cart" @click="addToCart(service)">В корзину</button>
+        <button class="btn-details" @click="$emit('details', service)">Подробнее</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { useCartStore } from '@/stores/cart'
+
+export default {
+  name: 'ServiceCard',
+  props: {
+    service: {
+      type: Object,
+      required: true,
+    },
+  },
+  methods: {
+    addToCart(service) {
+      const cartStore = useCartStore()
+      cartStore.addToCart(service)
+      this.$emit('added-to-cart', service)
+    },
+  },
+}
+</script>
+
+<style scoped>
+.service-card {
+  position: relative;
+  padding: 2rem;
+  background: #282828;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.service-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  background: #404040;
+}
+
+.service-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.service-content {
+  padding: 1.5rem;
+}
+
+.service-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #ffffff;
+}
+
+.service-description {
+  color: #b3b3b3;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.service-price {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #1db954;
+  margin-bottom: 1.5rem;
+}
+
+.service-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn-add-to-cart,
+.btn-details {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-add-to-cart {
+  background: #1db954;
+  color: white;
+}
+
+.btn-add-to-cart:hover {
+  background: #1ed760;
+}
+
+.btn-details {
+  background: #404040;
+  color: #ffffff;
+}
+
+.btn-details:hover {
+  background: #505050;
+}
+</style>
