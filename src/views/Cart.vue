@@ -32,7 +32,7 @@
           <span>К оплате:</span>
           <AnimatedPrice :value="cartStore.totalPrice" />
         </div>
-        <button class="checkout-button" @click="showOrderForm = true">Оформить заказ</button>
+        <button class="checkout-button" @click="handleCheckoutClick">Оформить заказ</button>
         <button class="clear-button" @click="clearCart">Очистить корзину</button>
       </div>
     </div>
@@ -65,6 +65,7 @@ import { useOrdersStore } from '@/stores/orders'
 import OrderForm from '@/components/OrderForm.vue'
 import AnimatedPrice from '@/components/AnimatedPrice.vue'
 import { supabase } from '../lib/supabaseClient'
+import { useAuthStore } from '@/stores/auth'
 
 export default {
   name: 'ShoppingCart',
@@ -153,6 +154,15 @@ export default {
     handleMessage({ text, type }) {
       this.showToast(text, type)
     },
+    handleCheckoutClick() {
+      const authStore = useAuthStore()
+      if (!authStore.isAuthenticated) {
+        // Показываем модальное окно авторизации
+        this.$emit('show-auth')
+        return
+      }
+      this.showOrderForm = true
+    }
   },
   inject: ['showToast'],
 }

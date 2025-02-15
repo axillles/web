@@ -11,7 +11,9 @@
           required
           class="form-control"
           placeholder="Как к вам обращаться"
+          @input="validateName"
         />
+        <small class="error-message" v-if="errors.contact_name">{{ errors.contact_name }}</small>
       </div>
 
       <div class="form-group">
@@ -25,19 +27,29 @@
           @input="formatPhone"
         />
         <small>Наш менеджер перезвонит для уточнения деталей</small>
+        <small class="error-message" v-if="errors.phone">{{ errors.phone }}</small>
       </div>
 
       <div class="form-group">
         <label>Способ оплаты*</label>
-        <select
-          v-model="formData.payment_method"
-          required
-          class="form-control"
-        >
-          <option value="">Выберите способ оплаты</option>
-          <option value="cash">Наличными</option>
-          <option value="card">Картой</option>
-        </select>
+        <div class="payment-buttons">
+          <button
+            type="button"
+            class="payment-button"
+            :class="{ active: formData.payment_method === 'cash' }"
+            @click="formData.payment_method = 'cash'"
+          >
+            Наличными
+          </button>
+          <button
+            type="button"
+            class="payment-button"
+            :class="{ active: formData.payment_method === 'card' }"
+            @click="formData.payment_method = 'card'"
+          >
+            Картой
+          </button>
+        </div>
       </div>
 
       <div class="form-group">
@@ -47,7 +59,9 @@
           v-model="formData.promo_code"
           class="form-control"
           placeholder="Если есть промокод"
+          @input="validatePromoCode"
         />
+        <small class="error-message" v-if="errors.promo_code">{{ errors.promo_code }}</small>
       </div>
 
       <div class="form-group">
@@ -89,12 +103,29 @@ export default {
         promo_code: '',
         comment: ''
       },
-      isSubmitting: false
+      isSubmitting: false,
+      errors: {
+        contact_name: '',
+        phone: '',
+        promo_code: ''
+      }
     }
   },
   methods: {
+    validateName() {
+      const nameRegex = /^[а-яА-ЯёЁa-zA-Z\s-]+$/
+      if (!nameRegex.test(this.formData.contact_name)) {
+        this.errors.contact_name = 'Имя должно содержать только буквы'
+        return false
+      }
+      this.errors.contact_name = ''
+      return true
+    },
+
     formatPhone() {
+      const phoneRegex = /^\+375\s\d{2}\s\d{3}-\d{2}-\d{2}$/
       let phone = this.formData.phone.replace(/\D/g, '')
+
       if (phone.startsWith('375')) {
         phone = '+' + phone
       } else if (phone.startsWith('80')) {
@@ -105,9 +136,37 @@ export default {
         phone = phone.slice(0, 13)
         this.formData.phone = phone.replace(/(\+375)(\d{2})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3-$4-$5')
       }
+
+      if (!phoneRegex.test(this.formData.phone)) {
+        this.errors.phone = 'Введите корректный номер телефона'
+        return false
+      }
+      this.errors.phone = ''
+      return true
+    },
+
+    validatePromoCode() {
+      if (this.formData.promo_code) {
+        const promoRegex = /^[a-zA-Z0-9]+$/
+        if (!promoRegex.test(this.formData.promo_code)) {
+          this.errors.promo_code = 'Промокод должен содержать только английские буквы и цифры'
+          return false
+        }
+      }
+      this.errors.promo_code = ''
+      return true
     },
 
     submitOrder() {
+      // Проверяем все поля перед отправкой
+      const isNameValid = this.validateName()
+      const isPhoneValid = this.formatPhone()
+      const isPromoValid = this.validatePromoCode()
+
+      if (!isNameValid || !isPhoneValid || !isPromoValid) {
+        return
+      }
+
       if (!this.formData.contact_name || !this.formData.phone || !this.formData.payment_method) {
         this.$emit('message', {
           text: 'Заполните все обязательные поля',
@@ -116,14 +175,20 @@ export default {
         return
       }
 
-      // Передаем только необходимые данные
+      this.isSubmitting = true
+      console.log('Данные формы перед отправкой:', this.formData)
+
       const orderData = {
-        contact_name: this.formData.contact_name,
+        contact_name: this.formData.contact_name.trim(),
         phone: this.formData.phone,
-        payment_method: this.formData.payment_method
+        payment_method: this.formData.payment_method,
+        promo_code: this.formData.promo_code || null,
+        comment: this.formData.comment || null
       }
 
+      console.log('Отправляемые данные заказа:', orderData)
       this.$emit('submit', orderData)
+      this.isSubmitting = false
     }
   }
 }
@@ -194,5 +259,41 @@ select {
   background-repeat: no-repeat;
   background-position: right 1rem center;
   background-size: 1em;
+}
+
+.payment-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.payment-button {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #404040;
+  border-radius: 4px;
+  background: #282828;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.payment-button:hover {
+  background: #404040;
+  border-color: #1db954;
+}
+
+.payment-button.active {
+  background: #1db954;
+  border-color: #1db954;
+  color: white;
+}
+
+.error-message {
+  display: block;
+  color: #ff4444;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
 }
 </style>

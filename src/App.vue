@@ -6,6 +6,19 @@
       <router-link to="/catalog">Каталог</router-link>
       <router-link to="/calculator">Калькулятор</router-link>
       <router-link to="/about">О нас</router-link>
+
+      <div class="contact-info">
+        <a href="tel:+375336052984" class="phone-number">+375 33 605-29-84</a>
+        <div class="messenger-links">
+          <a href="viber://chat?number=%2B375336052984" target="_blank">
+            <img src="/Icons/viber.png" alt="Viber" class="messenger-icon" />
+          </a>
+          <a href="https://wa.me/375336052984" target="_blank">
+            <img src="/Icons/whatsapp.png" alt="WhatsApp" class="messenger-icon" />
+          </a>
+        </div>
+      </div>
+
       <div class="auth-buttons">
         <template v-if="authStore.isAuthenticated">
           <router-link v-if="authStore.isAdmin" to="/admin" class="admin-link">
@@ -23,7 +36,7 @@
       </div>
     </nav>
 
-    <router-view></router-view>
+    <router-view @show-auth="showAuthModal = true"></router-view>
 
     <AppFooter />
     <ToastNotification ref="toast" />
@@ -78,9 +91,8 @@ export default {
       this.showAuthModal = false
     },
     handleAuthSuccess() {
-      if (this.authStore.isAuthenticated) {
-        this.$router.push('/profile')
-      }
+      this.showAuthModal = false
+      this.$router.go()
     },
     handleLogout() {
       this.authStore.logout()
@@ -118,6 +130,7 @@ body {
 .navbar {
   display: flex;
   align-items: center;
+  gap: 2rem;
   padding: 1rem;
   background: #000000;
   box-shadow: 0 1px 3px rgba(255, 255, 255, 0.1);
@@ -166,6 +179,41 @@ h2 {
 
 p {
   margin-bottom: 1rem;
+}
+
+.contact-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-left: 2rem;
+  margin-right: auto;
+}
+
+.phone-number {
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1.1rem;
+  transition: color 0.3s ease;
+}
+
+.phone-number:hover {
+  color: #1db954;
+}
+
+.messenger-links {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.messenger-icon {
+  width: 24px;
+  height: 24px;
+  transition: transform 0.3s ease;
+}
+
+.messenger-icon:hover {
+  transform: translateY(-2px);
 }
 
 .auth-buttons {
@@ -276,5 +324,23 @@ p {
 
 .carousel-nav:hover svg {
   fill: #1db954;
+}
+
+@media (max-width: 1024px) {
+  .navbar {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .contact-info {
+    margin: 0;
+    order: 2;
+  }
+
+  .auth-buttons {
+    order: 3;
+    margin-left: 0;
+  }
 }
 </style>

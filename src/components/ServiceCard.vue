@@ -7,7 +7,7 @@
       <div class="service-price">от {{ service.price }} ₽/час</div>
       <div class="service-actions">
         <button class="btn-add-to-cart" @click="addToCart(service)">В корзину</button>
-        <button class="btn-details" @click="$emit('details', service)">Подробнее</button>
+        <router-link :to="`/service/${service.id}`" class="btn-details">Подробнее</router-link>
       </div>
     </div>
   </div>
@@ -55,11 +55,13 @@ export default {
   height: 200px;
   object-fit: cover;
   border-radius: 8px;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .service-content {
-  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .service-title {
@@ -96,6 +98,8 @@ export default {
   cursor: pointer;
   font-weight: 500;
   transition: all 0.3s ease;
+  text-align: center;
+  text-decoration: none;
 }
 
 .btn-add-to-cart {

@@ -1,16 +1,16 @@
 <template>
   <div class="orders-admin">
     <h1>Управление заказами</h1>
-    
+
     <div class="orders-list">
       <div v-if="loading" class="loading">
         Загрузка заказов...
       </div>
-      
+
       <div v-else-if="orders.length === 0" class="no-orders">
         Заказов пока нет
       </div>
-      
+
       <div v-else class="orders-table">
         <table>
           <thead>
@@ -116,4 +116,4 @@ tr:hover {
   padding: 2rem;
   color: #b3b3b3;
 }
-</style> 
+</style>

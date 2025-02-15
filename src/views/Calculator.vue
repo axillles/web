@@ -37,8 +37,8 @@
 
       <div class="total-section">
         <h2>Итоговая стоимость</h2>
-        <div class="price">{{ calculateTotal }} ₽</div>
-        <button class="order-button" @click="showOrderForm = true">Заказать</button>
+        <div class="price">{{ calculateTotal }} BYN</div>
+        <button class="order-button" @click="showOrder">Заказать</button>
       </div>
     </div>
 
@@ -62,6 +62,7 @@
 <script>
 import OrderForm from '@/components/OrderForm.vue'
 import { useOrdersStore } from '@/stores/orders'
+import { useAuthStore } from '@/stores/auth'
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
@@ -115,24 +116,53 @@ export default {
     async handleOrderSubmit(orderData) {
       try {
         const ordersStore = useOrdersStore()
-        await ordersStore.createOrder({
-          ...orderData,
-          workers: this.loadersCount,
-          totalPrice: orderData.totalPrice,
-          additionalInfo: {
-            serviceType: this.serviceType,
-            vehicleType: this.needsTransport ? this.vehicleType : null,
-            loadersCount: this.loadersCount,
-            pricePerHour: this.calculateTotal / this.duration,
-          },
-        })
+
+        // Проверяем наличие обязательных полей
+        if (!orderData.contact_name || !orderData.phone || !orderData.payment_method) {
+          throw new Error('Заполните все обязательные поля')
+        }
+
+        // Формируем название услуги
+        const serviceTypes = {
+          moving: 'Квартирный переезд',
+          office: 'Офисный переезд',
+          loading: 'Погрузка/разгрузка',
+          lifting: 'Подъем на этаж'
+        }
+
+        // Логируем входящие данные
+        console.log('Входящие данные заказа:', orderData)
+
+        const orderDetails = {
+          contact_name: orderData.contact_name.trim(),
+          phone: orderData.phone,
+          payment_method: orderData.payment_method,
+          service_title: serviceTypes[this.serviceType],
+          approximate_price: this.calculateTotal,
+          status: 'new'
+        }
+
+        // Логируем подготовленные данные
+        console.log('Подготовленные данные заказа:', orderDetails)
+
+        await ordersStore.createOrder(orderDetails)
         this.showOrderForm = false
-        this.showToast('Заказ успешно оформлен!', 'success')
+        this.showToast('Заявка принята! Наш менеджер свяжется с вами в ближайшее время.', 'success')
+
       } catch (error) {
         console.error('Ошибка при оформлении заказа:', error)
         this.showToast(error.message || 'Ошибка при оформлении заказа', 'error')
       }
     },
+    showOrder() {
+      const authStore = useAuthStore()
+      if (!authStore.isAuthenticated) {
+        // Показываем модальное окно авторизации
+        this.$emit('show-auth')
+        return
+      }
+      this.showOrderForm = true
+    }
   },
   inject: ['showToast'],
 }

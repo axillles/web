@@ -1,11 +1,17 @@
 <template>
   <div class="service-details">
+    <div class="navigation">
+      <button class="back-button" @click="$router.back()">
+        <span class="arrow">←</span> Назад
+      </button>
+    </div>
+
     <div class="service-header">
       <img :src="service.image" :alt="service.title" class="service-image" />
       <div class="service-info">
         <h1>{{ service.title }}</h1>
         <div class="service-price">от {{ service.price }} ₽/час</div>
-        <button class="btn-primary" @click="showOrderForm = true">Заказать</button>
+        <button class="btn-primary" @click="addToCart">В корзину</button>
       </div>
     </div>
 
@@ -56,6 +62,8 @@
 import OrderForm from '@/components/OrderForm.vue'
 import { useOrdersStore } from '@/stores/orders'
 import { useServicesStore } from '@/stores/services'
+import { useCartStore } from '@/stores/cart'
+import { useAuthStore } from '@/stores/auth'
 
 export default {
   name: 'ServiceDetails',
@@ -68,6 +76,7 @@ export default {
       showOrderForm: false,
       ordersStore: useOrdersStore(),
       servicesStore: useServicesStore(),
+      cartStore: useCartStore(),
     }
   },
   computed: {
@@ -114,6 +123,10 @@ export default {
         this.showToast(error.message || 'Ошибка при оформлении заказа', 'error')
       }
     },
+    addToCart() {
+      this.cartStore.addToCart(this.service)
+      this.showToast('Услуга добавлена в корзину', 'success')
+    },
   },
   created() {
     this.fetchServiceDetails()
@@ -122,6 +135,29 @@ export default {
 </script>
 
 <style scoped>
+.navigation {
+  margin-bottom: 1rem;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #404040;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  background: #505050;
+  transform: translateX(-5px);
+}
+
 .service-details {
   max-width: 1200px;
   margin: 0 auto;
@@ -234,18 +270,23 @@ export default {
 }
 
 .btn-primary {
-  background: #007bff;
+  background: #1db954;
   color: white;
   border: none;
   padding: 1rem 2rem;
-  border-radius: 4px;
+  border-radius: 50px;
   font-size: 1.1rem;
   cursor: pointer;
   transition: background 0.3s ease;
 }
 
 .btn-primary:hover {
-  background: #0056b3;
+  background: #1ed760;
+}
+
+.arrow {
+  font-size: 1.2rem;
+  line-height: 1;
 }
 
 @media (max-width: 768px) {
@@ -255,6 +296,10 @@ export default {
 
   .service-content {
     grid-template-columns: 1fr;
+  }
+
+  .service-details {
+    padding: 1rem;
   }
 }
 </style>

@@ -19,44 +19,41 @@ export const useOrdersStore = defineStore('orders', {
       this.error = null
       try {
         const authStore = useAuthStore()
-        if (!authStore.isAuthenticated) {
-          throw new Error('Необходима авторизация')
+
+        // Проверяем наличие обязательных полей
+        if (!orderData.contact_name || !orderData.phone || !orderData.payment_method) {
+          throw new Error('Не заполнены обязательные поля')
         }
 
-        if (!orderData.datetime) {
-          throw new Error('Дата и время не указаны')
+        // Используем существующую связь с auth.users.id
+        const orderPayload = {
+          contact_name: orderData.contact_name.trim(),
+          phone: orderData.phone,
+          payment_method: orderData.payment_method,
+          service_title: orderData.service_title,
+          approximate_price: orderData.approximate_price,
+          status: 'new',
+          user_id: authStore.user.id // Напрямую используем ID из auth.users
         }
 
-        // Преобразуем дату в правильный формат для PostgreSQL
-        const [datePart, timePart] = orderData.datetime.split('T')
-        if (!datePart || !timePart) {
-          throw new Error('Неверный формат даты')
-        }
+        console.log('Order payload:', orderPayload)
 
-        const formattedDate = `${datePart} ${timePart}:00+00`
-
+        // Используем RLS политику для автоматической привязки к пользователю
         const { data, error } = await supabase
-          .from('orders')
-          .insert([
-            {
-              user_id: authStore.user.id,
-              service_id: orderData.serviceId,
-              datetime: formattedDate,
-              duration: orderData.duration,
-              address: orderData.address,
-              contact_name: orderData.contactName,
-              phone: orderData.phone,
-              comment: orderData.comment,
-              status: 'pending',
-              price: parseFloat(orderData.totalPrice),
-            },
-          ])
+          .from('unconfirmed_orders')
+          .insert([orderPayload])
           .select()
+          .single()
 
-        if (error) throw error
+        if (error) {
+          console.error('Ошибка при создании заказа:', error)
+          throw error
+        }
+
+        console.log('Created order:', data)
         return data
       } catch (error) {
-        console.error('Order creation error:', error, orderData)
+        console.error('Order creation error:', error)
         this.setError(error)
         throw error
       } finally {
@@ -69,31 +66,43 @@ export const useOrdersStore = defineStore('orders', {
       this.error = null
       try {
         const authStore = useAuthStore()
-        if (!authStore.isAuthenticated) {
+        if (!authStore.isAuthenticated || !authStore.user?.id) {
           throw new Error('Необходима авторизация')
         }
 
-        const { data, error } = await supabase
-          .from('orders')
-          .select(
-            `
-            *,
-            services:service_id (
-              title,
-              price
-            )
-          `,
-          )
-          .eq('user_id', authStore.user.id)
-          .order('datetime', { ascending: false })
+        const userId = authStore.user.id
+        console.log('Fetching orders for user:', userId)
 
-        if (error) throw error
+        // Получаем как подтвержденные, так и неподтвержденные заказы
+        const [confirmedOrders, unconfirmedOrders] = await Promise.all([
+          supabase
+            .from('orders')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false }),
+          supabase
+            .from('unconfirmed_orders')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false })
+        ])
 
-        if (data) {
-          this.orders = data
-          return data
-        }
+        console.log('Confirmed orders:', confirmedOrders)
+        console.log('Unconfirmed orders:', unconfirmedOrders)
+
+        if (confirmedOrders.error) throw confirmedOrders.error
+        if (unconfirmedOrders.error) throw unconfirmedOrders.error
+
+        // Объединяем заказы и сортируем по дате
+        const allOrders = [...(confirmedOrders.data || []), ...(unconfirmedOrders.data || [])]
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+
+        console.log('Combined orders:', allOrders)
+
+        this.orders = allOrders
+        return allOrders
       } catch (error) {
+        console.error('Error fetching orders:', error)
         this.setError(error)
         throw error
       } finally {

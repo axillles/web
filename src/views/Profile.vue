@@ -13,12 +13,6 @@
 
         <nav class="profile-nav">
           <button
-            :class="{ active: activeTab === 'orders' }"
-            @click="activeTab = 'orders'"
-          >
-            Мои заказы
-          </button>
-          <button
             :class="{ active: activeTab === 'personal' }"
             @click="activeTab = 'personal'"
           >
@@ -39,30 +33,6 @@
 
       <!-- Контент вкладок -->
       <div class="profile-content">
-        <!-- Вкладка заказов -->
-        <div v-if="activeTab === 'orders'" class="tab-content">
-          <h2>Мои заказы</h2>
-          <div v-if="orders.length" class="orders-list">
-            <div v-for="order in orders" :key="order.id" class="order-card">
-              <div class="order-header">
-                <span class="order-number">Заказ #{{ order.id }}</span>
-                <span :class="['order-status', order.status]">{{ getStatusText(order.status) }}</span>
-              </div>
-              <div class="order-details">
-                <div class="order-info">
-                  <p class="order-date">{{ formatDate(order.date) }}</p>
-                  <p class="order-price">{{ order.total }} ₽</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div v-else class="empty-state">
-            <i class="fas fa-shopping-bag"></i>
-            <p>У вас пока нет заказов</p>
-            <router-link to="/catalog" class="btn-primary">Перейти в каталог</router-link>
-          </div>
-        </div>
-
         <!-- Вкладка личных данных -->
         <div v-if="activeTab === 'personal'" class="tab-content">
           <h2>Личные данные</h2>
@@ -147,22 +117,18 @@ export default {
   name: 'Profile',
   setup() {
     const authStore = useAuthStore()
-    const activeTab = ref('orders')
-    const orders = ref([]) // Здесь будут храниться заказы пользователя
-
+    const activeTab = ref('personal')
+    const user = computed(() => authStore.user)
     const profileForm = ref({
       name: authStore.user?.user_metadata?.name || '',
       email: authStore.user?.email || '',
       phone: authStore.user?.user_metadata?.phone || ''
     })
-
     const passwordForm = ref({
       current: '',
       new: '',
       confirm: ''
     })
-
-    const user = computed(() => authStore.user)
 
     const handleLogout = async () => {
       try {
@@ -172,43 +138,20 @@ export default {
       }
     }
 
-    const formatDate = (date) => {
-      return new Date(date).toLocaleString('ru-RU', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    }
-
-    const getStatusText = (status) => {
-      const statusMap = {
-        pending: 'Ожидает',
-        processing: 'В обработке',
-        completed: 'Выполнен',
-        cancelled: 'Отменен'
-      }
-      return statusMap[status] || status
-    }
-
     const updateProfile = async () => {
-      // Здесь будет логика обновления профиля
+      // Логика обновления профиля
     }
 
     const changePassword = async () => {
-      // Здесь будет логика изменения пароля
+      // Логика изменения пароля
     }
 
     return {
       user,
       activeTab,
-      orders,
       profileForm,
       passwordForm,
       handleLogout,
-      formatDate,
-      getStatusText,
       updateProfile,
       changePassword
     }
@@ -377,40 +320,6 @@ export default {
   color: #1db954;
 }
 
-.orders-list {
-  display: grid;
-  gap: 1rem;
-}
-
-.order-card {
-  background: #323232;
-  border-radius: 8px;
-  padding: 1.5rem;
-  transition: transform 0.3s ease;
-}
-
-.order-card:hover {
-  transform: translateY(-2px);
-}
-
-.order-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.order-status {
-  padding: 0.25rem 0.75rem;
-  border-radius: 4px;
-  font-size: 0.9rem;
-}
-
-.order-status.completed { background: #1db954; }
-.order-status.pending { background: #ffc107; color: #000; }
-.order-status.processing { background: #2196f3; }
-.order-status.cancelled { background: #f44336; }
-
 .profile-form {
   max-width: 400px;
 }
@@ -458,39 +367,5 @@ export default {
 .btn-save:hover {
   background: #1ed760;
   transform: translateY(-2px);
-}
-
-.empty-state {
-  text-align: center;
-  padding: 3rem;
-  color: #b3b3b3;
-}
-
-.empty-state i {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  color: #404040;
-}
-
-.btn-primary {
-  display: inline-block;
-  background: #1db954;
-  color: white;
-  text-decoration: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 4px;
-  margin-top: 1rem;
-  transition: all 0.3s ease;
-}
-
-.btn-primary:hover {
-  background: #1ed760;
-  transform: translateY(-2px);
-}
-
-@media (max-width: 768px) {
-  .profile-form {
-    max-width: 100%;
-  }
 }
 </style>
