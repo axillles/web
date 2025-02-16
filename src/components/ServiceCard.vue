@@ -11,6 +11,13 @@
       </div>
     </div>
   </div>
+  <div v-if="showOrderModal" class="modal" @click.self="closeModal">
+    <div class="modal-content">
+      <button class="close-button" @click="closeModal">&times;</button>
+      <h2>Оформление заказа</h2>
+      <!-- ... содержимое модального окна ... -->
+    </div>
+  </div>
 </template>
 
 <script>
@@ -24,11 +31,30 @@ export default {
       required: true,
     },
   },
+  data() {
+    return {
+      showOrderModal: false,
+    }
+  },
+  mounted() {
+    document.addEventListener('keydown', this.handleEscKey)
+  },
+  beforeDestroy() {
+    document.removeEventListener('keydown', this.handleEscKey)
+  },
   methods: {
     addToCart(service) {
       const cartStore = useCartStore()
       cartStore.addToCart(service)
       this.$emit('added-to-cart', service)
+    },
+    closeModal() {
+      this.showOrderModal = false
+    },
+    handleEscKey(event) {
+      if (event.key === 'Escape' && this.showOrderModal) {
+        this.closeModal()
+      }
     },
   },
 }
@@ -118,5 +144,35 @@ export default {
 
 .btn-details:hover {
   background: #505050;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #b3b3b3;
+  transition: color 0.3s ease;
+  z-index: 1001;
+}
+
+.close-button:hover {
+  color: #ffffff;
 }
 </style>

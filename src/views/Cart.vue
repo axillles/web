@@ -390,4 +390,157 @@ export default {
 .close-button:hover {
   color: #ffffff;
 }
+
+@media (max-width: 1024px) {
+  .cart {
+    padding: 1rem;
+  }
+
+  .cart-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .cart-items {
+    width: 100%;
+  }
+
+  .cart-summary {
+    position: static;
+    width: 100%;
+    margin-top: 1rem;
+    padding: 1rem;
+  }
+
+  .cart-item {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 0.5rem;
+    padding: 0.8rem;
+    align-items: center;
+    position: relative;
+  }
+
+  .item-image {
+    width: 60px;
+    height: 60px;
+    grid-row: span 2;
+  }
+
+  .item-info {
+    padding: 0;
+  }
+
+  .item-info h3 {
+    font-size: 1rem;
+    margin: 0;
+  }
+
+  .item-price {
+    font-size: 0.9rem;
+  }
+
+  .item-quantity {
+    display: flex;
+    gap: 0.3rem;
+    align-items: center;
+    grid-column: 2;
+  }
+
+  .item-quantity button {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.9rem;
+  }
+
+  .item-quantity span {
+    min-width: 1.5rem;
+    text-align: center;
+  }
+
+  .item-total {
+    font-size: 0.9rem;
+    grid-column: 3;
+    grid-row: span 2;
+  }
+
+  .summary-row {
+    font-size: 0.9rem;
+    padding: 0.8rem 0;
+  }
+
+  .checkout-button,
+  .clear-button {
+    padding: 0.8rem;
+    font-size: 0.9rem;
+  }
+
+  .remove-button {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.3rem;
+    font-size: 1.2rem;
+    background: none;
+    border: none;
+    color: #b3b3b3;
+    cursor: pointer;
+    z-index: 1;
+  }
+
+  .remove-button:hover {
+    color: #ff4444;
+  }
+}
+
+@media (max-width: 480px) {
+  .cart {
+    padding: 0.5rem;
+  }
+
+  .cart-item {
+    padding: 0.6rem;
+  }
+
+  .cart-summary {
+    padding: 0.8rem;
+  }
+
+  .item-image {
+    width: 50px;
+    height: 50px;
+  }
+
+  .item-info h3 {
+    font-size: 0.9rem;
+  }
+
+  .item-price,
+  .item-total {
+    font-size: 0.8rem;
+  }
+
+  .item-quantity button {
+    padding: 0.15rem 0.3rem;
+    font-size: 0.8rem;
+  }
+
+  .summary-row {
+    font-size: 0.85rem;
+    padding: 0.6rem 0;
+  }
+
+  .checkout-button,
+  .clear-button {
+    padding: 0.7rem;
+    font-size: 0.85rem;
+  }
+
+  .remove-button {
+    top: 0.3rem;
+    right: 0.3rem;
+    padding: 0.2rem;
+    font-size: 1.1rem;
+  }
+}
 </style>

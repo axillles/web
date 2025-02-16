@@ -349,4 +349,36 @@ export default {
   transform: scale(1.05);
   box-shadow: 0 0 20px rgba(29, 185, 84, 0.3);
 }
+
+@media (max-width: 1024px) {
+  .filter-section {
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  .category-select,
+  .sort-select {
+    font-size: 0.9rem;
+    padding: 0.4rem;
+    width: 160px;
+  }
+}
+
+@media (max-width: 480px) {
+  .filter-section {
+    gap: 0.3rem;
+    padding: 0.3rem;
+  }
+
+  .category-select,
+  .sort-select {
+    font-size: 0.85rem;
+    padding: 0.3rem;
+    width: 140px;
+  }
+
+  .filter-label {
+    font-size: 0.85rem;
+  }
+}
 </style>

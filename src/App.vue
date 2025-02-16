@@ -64,6 +64,7 @@ export default {
     try {
       await this.authStore.checkAuth()
     } catch (error) {
+      console.error('Auth check error:', error)
       this.showToast('Ошибка при проверке авторизации', 'error')
     }
   },
