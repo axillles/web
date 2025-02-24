@@ -6,8 +6,9 @@ export const useCartStore = defineStore('cart', {
   }),
 
   actions: {
-    addToCart(service) {
-      const existingItem = this.items.find((item) => item.id === service.id)
+    addToCart(service, params = {}) {
+      const existingItem = this.items.find(item => item.id === service.id)
+
       if (existingItem) {
         existingItem.quantity++
       } else {
@@ -15,8 +16,12 @@ export const useCartStore = defineStore('cart', {
           id: service.id,
           title: service.title,
           price: service.price,
-          quantity: 1,
           image: service.image,
+          type: service.type,
+          quantity: 1,
+          hours: params.hours || null,
+          workers: params.workers || null,
+          vehicle_type: params.vehicle_type || null
         })
       }
     },

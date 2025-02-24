@@ -31,6 +31,31 @@
       </div>
 
       <div class="form-group">
+        <label>Адрес*</label>
+        <input
+          type="text"
+          v-model="formData.address"
+          required
+          class="form-control"
+          placeholder="Укажите адрес"
+        />
+        <small class="error-message" v-if="errors.address">{{ errors.address }}</small>
+      </div>
+
+      <div class="form-group">
+        <label>Дата и время*</label>
+        <input
+          type="datetime-local"
+          v-model="formData.datetime"
+          required
+          class="form-control"
+          :min="minDateTime"
+        />
+        <small>Выберите желаемую дату и время</small>
+        <small class="error-message" v-if="errors.datetime">{{ errors.datetime }}</small>
+      </div>
+
+      <div class="form-group">
         <label>Способ оплаты*</label>
         <div class="payment-buttons">
           <button
@@ -54,14 +79,28 @@
 
       <div class="form-group">
         <label>Промокод</label>
-        <input
-          type="text"
-          v-model="formData.promo_code"
-          class="form-control"
-          placeholder="Если есть промокод"
-          @input="validatePromoCode"
-        />
+        <div class="promo-input">
+          <input
+            type="text"
+            v-model="formData.promo_code"
+            class="form-control"
+            placeholder="Если есть промокод"
+            :disabled="promoApplied"
+          />
+          <button
+            type="button"
+            class="btn-apply-promo"
+            :disabled="!formData.promo_code || promoApplied"
+            @click="validatePromocode"
+          >
+            {{ promoApplied ? 'Применен' : 'Применить' }}
+          </button>
+        </div>
         <small class="error-message" v-if="errors.promo_code">{{ errors.promo_code }}</small>
+        <div v-if="promoApplied" class="promo-info">
+          <span class="discount-amount">Скидка: {{ discount }} ₽</span>
+          <button class="btn-remove-promo" @click="removePromo">×</button>
+        </div>
       </div>
 
       <div class="form-group">
@@ -72,6 +111,15 @@
           rows="3"
           placeholder="Дополнительная информация"
         ></textarea>
+      </div>
+
+      <div class="total-amount">
+        <div v-if="promoApplied" class="original-price">
+          <s>{{ servicePrice }} ₽</s>
+        </div>
+        <div class="final-price">
+          Итого: {{ finalPrice }} ₽
+        </div>
       </div>
 
       <button
@@ -86,19 +134,31 @@
 </template>
 
 <script>
+import { useAuthStore } from '@/stores/auth'
+import { usePromocodesStore } from '@/stores/promocodes'
+
 export default {
   name: 'OrderForm',
   props: {
     serviceId: {
       type: Number,
       required: true
+    },
+    servicePrice: {
+      type: Number,
+      required: true
     }
   },
   data() {
+    const authStore = useAuthStore()
+    const userData = authStore.user?.user_metadata || {}
+
     return {
       formData: {
-        contact_name: '',
-        phone: '',
+        contact_name: userData.name || '',
+        phone: userData.phone || '',
+        address: '',
+        datetime: '',
         payment_method: '',
         promo_code: '',
         comment: ''
@@ -107,8 +167,26 @@ export default {
       errors: {
         contact_name: '',
         phone: '',
+        address: '',
+        datetime: '',
         promo_code: ''
-      }
+      },
+      promocodesStore: usePromocodesStore(),
+      promoApplied: false,
+      discount: 0
+    }
+  },
+  computed: {
+    finalPrice() {
+      const price = Number(this.servicePrice) || 0
+      const discount = Number(this.discount) || 0
+      return Math.max(0, price - discount)
+    },
+    minDateTime() {
+      const tomorrow = new Date()
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      tomorrow.setHours(8, 0, 0, 0)
+      return tomorrow.toISOString().slice(0, 16)
     }
   },
   methods: {
@@ -124,6 +202,11 @@ export default {
 
     formatPhone() {
       const phoneRegex = /^\+375\s\d{2}\s\d{3}-\d{2}-\d{2}$/
+      if (phoneRegex.test(this.formData.phone)) {
+        this.errors.phone = ''
+        return true
+      }
+
       let phone = this.formData.phone.replace(/\D/g, '')
 
       if (phone.startsWith('375')) {
@@ -145,48 +228,99 @@ export default {
       return true
     },
 
-    validatePromoCode() {
-      if (this.formData.promo_code) {
-        const promoRegex = /^[a-zA-Z0-9]+$/
-        if (!promoRegex.test(this.formData.promo_code)) {
-          this.errors.promo_code = 'Промокод должен содержать только английские буквы и цифры'
-          return false
+    async validatePromocode() {
+      if (!this.formData.promo_code) return true
+
+      try {
+        const result = await this.promocodesStore.validatePromocode(
+          this.formData.promo_code,
+          this.servicePrice
+        )
+
+        if (result.isValid) {
+          this.promoApplied = true
+          this.discount = result.discount
+          this.errors.promo_code = ''
+          this.$emit('message', {
+            text: `Промокод применен! Скидка: ${result.discount} ₽`,
+            type: 'success'
+          })
         }
-      }
-      this.errors.promo_code = ''
-      return true
-    },
-
-    submitOrder() {
-      // Проверяем все поля перед отправкой
-      const isNameValid = this.validateName()
-      const isPhoneValid = this.formatPhone()
-      const isPromoValid = this.validatePromoCode()
-
-      if (!isNameValid || !isPhoneValid || !isPromoValid) {
-        return
-      }
-
-      if (!this.formData.contact_name || !this.formData.phone || !this.formData.payment_method) {
+        return true
+      } catch (error) {
+        this.errors.promo_code = error.message
         this.$emit('message', {
-          text: 'Заполните все обязательные поля',
+          text: error.message,
           type: 'error'
         })
+        return false
+      }
+    },
+
+    removePromo() {
+      this.promoApplied = false
+      this.discount = 0
+      this.formData.promo_code = ''
+      this.errors.promo_code = ''
+    },
+
+    validateForm() {
+      let isValid = true
+      this.errors = {}
+
+      if (!this.formData.contact_name) {
+        this.errors.contact_name = 'Введите ваше имя'
+        isValid = false
+      }
+
+      if (!this.formData.phone) {
+        this.errors.phone = 'Введите номер телефона'
+        isValid = false
+      }
+
+      if (!this.formData.address) {
+        this.errors.address = 'Укажите адрес'
+        isValid = false
+      }
+
+      if (!this.formData.datetime) {
+        this.errors.datetime = 'Выберите дату и время'
+        isValid = false
+      }
+
+      if (!this.formData.payment_method) {
+        this.errors.payment_method = 'Выберите способ оплаты'
+        isValid = false
+      }
+
+      return isValid && this.validateName() && this.formatPhone()
+    },
+
+    async submitOrder() {
+      if (!this.validateForm()) {
         return
       }
 
       this.isSubmitting = true
-      console.log('Данные формы перед отправкой:', this.formData)
 
       const orderData = {
         contact_name: this.formData.contact_name.trim(),
         phone: this.formData.phone,
+        address: this.formData.address.trim(),
+        datetime: this.formData.datetime,
         payment_method: this.formData.payment_method,
-        promo_code: this.formData.promo_code || null,
+        promo_code: this.promoApplied ? this.formData.promo_code : null,
+        service_price: this.servicePrice,
+        final_price: this.finalPrice,
         comment: this.formData.comment || null
       }
 
-      console.log('Отправляемые данные заказа:', orderData)
+      console.log('Отправляемые данные из формы:', {
+        service_price: this.servicePrice,
+        final_price: this.finalPrice,
+        discount: this.discount
+      })
+
       this.$emit('submit', orderData)
       this.isSubmitting = false
     }
@@ -199,28 +333,49 @@ export default {
   max-width: 500px;
   margin: 0 auto;
   background: #2a2a2a;
-  padding: 20px;
+  padding: 1.5rem;
   border-radius: 8px;
+  max-height: calc(90vh - 4rem); /* Высота с учетом отступов */
+  overflow-y: auto; /* Добавляем прокрутку */
+}
+
+/* Стилизуем скроллбар */
+.order-form::-webkit-scrollbar {
+  width: 8px;
+}
+
+.order-form::-webkit-scrollbar-track {
+  background: #2a2a2a;
+}
+
+.order-form::-webkit-scrollbar-thumb {
+  background: #404040;
+  border-radius: 4px;
+}
+
+.order-form::-webkit-scrollbar-thumb:hover {
+  background: #505050;
 }
 
 h3 {
   margin-top: 0;
-  margin-bottom: 20px;
+  margin-bottom: 1rem; /* Уменьшаем отступ */
   text-align: center;
 }
 
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem; /* Уменьшаем отступ */
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem; /* Уменьшаем отступ */
+  font-size: 0.9rem; /* Уменьшаем размер шрифта */
 }
 
 .form-control {
   width: 100%;
-  padding: 0.75rem;
+  padding: 0.5rem 0.75rem; /* Уменьшаем padding */
   background: #404040;
   border: 1px solid #404040;
   border-radius: 4px;
@@ -229,7 +384,7 @@ h3 {
 
 textarea.form-control {
   resize: vertical;
-  min-height: 80px;
+  min-height: 60px; /* Уменьшаем минимальную высоту */
 }
 
 .btn-primary {
@@ -248,9 +403,8 @@ textarea.form-control {
 }
 
 small {
-  display: block;
-  margin-top: 0.5rem;
-  color: #808080;
+  font-size: 0.8rem; /* Уменьшаем размер шрифта */
+  margin-top: 0.25rem;
 }
 
 select {
@@ -263,20 +417,20 @@ select {
 
 .payment-buttons {
   display: flex;
-  gap: 1rem;
-  margin-top: 0.5rem;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
 }
 
 .payment-button {
   flex: 1;
-  padding: 0.75rem 1.5rem;
+  padding: 0.5rem 1rem; /* Уменьшаем padding */
   border: 2px solid #404040;
   border-radius: 4px;
   background: #282828;
   color: #ffffff;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 1rem;
+  font-size: 0.9rem; /* Уменьшаем размер шрифта */
 }
 
 .payment-button:hover {
@@ -295,5 +449,71 @@ select {
   color: #ff4444;
   margin-top: 0.5rem;
   font-size: 0.875rem;
+}
+
+.promo-input {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-apply-promo {
+  padding: 0.75rem 1rem;
+  background: #1db954;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-apply-promo:disabled {
+  background: #404040;
+  cursor: not-allowed;
+}
+
+.promo-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  color: #1db954;
+}
+
+.btn-remove-promo {
+  background: none;
+  border: none;
+  color: #ff4444;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0;
+}
+
+.total-amount {
+  margin: 0.75rem 0;
+}
+
+.original-price {
+  color: #b3b3b3;
+  font-size: 0.9rem;
+}
+
+.final-price {
+  color: #1db954;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+input[type="datetime-local"] {
+  width: 100%;
+  padding: 0.75rem;
+  background: #404040;
+  border: 1px solid #404040;
+  border-radius: 4px;
+  color: #ffffff;
+}
+
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
 }
 </style>

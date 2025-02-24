@@ -11,13 +11,13 @@
       </div>
     </div>
   </div>
-  <div v-if="showOrderModal" class="modal" @click.self="closeModal">
-    <div class="modal-content">
-      <button class="close-button" @click="closeModal">&times;</button>
-      <h2>Оформление заказа</h2>
-      <!-- ... содержимое модального окна ... -->
-    </div>
-  </div>
+  <OrderForm
+    v-if="showOrderModal"
+    :service-price="service.price"
+    :service-id="service.id"
+    @submit="handleOrderSubmit"
+    @close="closeModal"
+  />
 </template>
 
 <script>
@@ -45,8 +45,22 @@ export default {
   methods: {
     addToCart(service) {
       const cartStore = useCartStore()
-      cartStore.addToCart(service)
-      this.$emit('added-to-cart', service)
+      // Добавляем базовые параметры для каждого типа услуги
+      const serviceParams = {
+        moving: { hours: 3, workers: 2, vehicle_type: 'gazelle' },
+        office: { hours: 4, workers: 3, vehicle_type: 'truck' },
+        loading: { hours: 2, workers: 2 },
+        lifting: { hours: 2, workers: 2 }
+      }
+
+      const params = serviceParams[this.service.type] || {}
+
+      cartStore.addToCart({
+        ...this.service,
+        type: this.service.type // Добавляем тип услуги
+      }, params)
+
+      this.$emit('added-to-cart', this.service)
     },
     closeModal() {
       this.showOrderModal = false

@@ -26,7 +26,8 @@
 
     <section class="promotions">
       <h2>Акции и спецпредложения</h2>
-      <PromotionSlider />
+      <div v-if="isLoading" class="loader"></div>
+      <PromotionSlider v-else />
     </section>
 
     <section class="business-clients">
@@ -38,17 +39,19 @@
     <!-- Модальное окно с контактной информацией -->
     <div v-if="showContactModal" class="modal">
       <div class="modal-content">
-        <button class="close-button" @click="showContactModal = false">&times;</button>
-        <h2>Контактная информация</h2>
+        <button class="close-button" @click="showContactModal = false">×</button>
         <div class="contact-info">
-          <p class="phone">+375 33 605-29-84</p>
-          <p class="business-info">
+          <div class="phone-numbers">
+            <div class="phone-part">+375</div>
+            <div class="phone-part">33</div>
+            <div class="phone-part">605-</div>
+            <div class="phone-part">29-</div>
+            <div class="phone-part">84</div>
+          </div>
+          <p class="business-text">
             Для юридических лиц цены обсуждаются индивидуально по телефону
           </p>
-          <div class="contact-actions">
-            <a :href="'tel:+375336052984'" class="call-button">Позвонить</a>
-            <button class="close-modal" @click="showContactModal = false">Закрыть</button>
-          </div>
+          <a :href="'tel:+375336052984'" class="call-button">Позвонить</a>
         </div>
       </div>
     </div>
@@ -67,7 +70,14 @@ export default {
   data() {
     return {
       showContactModal: false,
+      isLoading: true
     }
+  },
+  mounted() {
+    // Имитация загрузки данных
+    setTimeout(() => {
+      this.isLoading = false
+    }, 1000)
   },
   methods: {},
 }
@@ -203,13 +213,14 @@ export default {
 
 .modal-content {
   background: #282828;
-  padding: 2rem;
-  border-radius: 8px;
+  padding: 3rem 2rem 2rem;
+  border-radius: 12px;
   position: relative;
   width: 90%;
-  max-width: 500px;
-  text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  max-width: 400px;
+  margin: 1rem;
+  display: flex;
+  justify-content: center;
 }
 
 .close-button {
@@ -218,70 +229,102 @@ export default {
   right: 1rem;
   background: none;
   border: none;
-  font-size: 1.5rem;
+  font-size: 2rem;
+  line-height: 1;
   cursor: pointer;
   color: #b3b3b3;
-  transition: color 0.3s ease;
+  padding: 0.5rem;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
 }
 
 .close-button:hover {
   color: #ffffff;
-}
-
-.modal-content h2 {
-  color: #ffffff;
-  margin-bottom: 1.5rem;
+  transform: scale(1.1);
 }
 
 .contact-info {
-  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.5rem;
+  width: 100%;
 }
 
-.phone {
-  font-size: 1.5rem;
+.phone-numbers {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.phone-part {
+  font-size: clamp(1.5rem, 4vw, 2rem);
   font-weight: bold;
   color: #1db954;
-  margin-bottom: 1rem;
 }
 
-.business-info {
+.phone-part:first-child {
   color: #b3b3b3;
-  margin-bottom: 1.5rem;
-  line-height: 1.5;
 }
 
-.contact-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
+.business-text {
+  color: #b3b3b3;
+  font-size: clamp(1rem, 3vw, 1.2rem);
+  text-align: center;
+  line-height: 1.5;
+  margin: 0;
+  width: 100%;
+  max-width: 300px;
 }
 
 .call-button {
   background: #1db954;
   color: white;
   text-decoration: none;
-  padding: 0.75rem 1.5rem;
+  padding: 1rem 3rem;
   border-radius: 50px;
   font-weight: bold;
-  transition: background 0.3s ease;
+  font-size: clamp(1rem, 3vw, 1.2rem);
+  transition: all 0.3s ease;
+  width: 100%;
+  max-width: 200px;
+  text-align: center;
 }
 
 .call-button:hover {
   background: #1ed760;
+  transform: scale(1.05);
 }
 
-.close-modal {
-  background: #404040;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 50px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background 0.3s ease;
+@media (max-width: 480px) {
+  .modal-content {
+    padding: 3rem 1rem 1.5rem;
+  }
+
+  .phone-numbers {
+    gap: 4px;
+  }
 }
 
-.close-modal:hover {
-  background: #282828;
+.loader {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #282828;
+  border-top: 5px solid #1db954;
+  border-radius: 50%;
+  margin: 20px auto;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>

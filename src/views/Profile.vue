@@ -62,8 +62,8 @@
                 placeholder="+375 (XX) XXX-XX-XX"
               />
             </div>
-            <button type="submit" class="btn-save">
-              Сохранить изменения
+            <button type="submit" class="btn-save" :disabled="isLoading">
+              {{ isLoading ? 'Сохранение...' : 'Сохранить изменения' }}
             </button>
           </form>
         </div>
@@ -99,8 +99,8 @@
                 required
               />
             </div>
-            <button type="submit" class="btn-save">
-              Изменить пароль
+            <button type="submit" class="btn-save" :disabled="isLoading">
+              {{ isLoading ? 'Сохранение...' : 'Изменить пароль' }}
             </button>
           </form>
         </div>
@@ -112,18 +112,23 @@
 <script>
 import { ref, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useToast } from '@/composables/useToast'
 
 export default {
-  name: 'Profile',
+  name: 'UserProfile',
   setup() {
     const authStore = useAuthStore()
+    const { showToast } = useToast()
     const activeTab = ref('personal')
     const user = computed(() => authStore.user)
+    const isLoading = ref(false)
+
     const profileForm = ref({
       name: authStore.user?.user_metadata?.name || '',
       email: authStore.user?.email || '',
       phone: authStore.user?.user_metadata?.phone || ''
     })
+
     const passwordForm = ref({
       current: '',
       new: '',
@@ -133,17 +138,67 @@ export default {
     const handleLogout = async () => {
       try {
         await authStore.logout()
-      } catch (error) {
-        console.error('Ошибка при выходе:', error)
+      } catch {
+        showToast('Ошибка при выходе из аккаунта', 'error')
       }
     }
 
     const updateProfile = async () => {
-      // Логика обновления профиля
+      try {
+        isLoading.value = true
+
+        // Проверяем валидность телефона
+        const phoneRegex = /^\+375\s?\d{2}\s?\d{3}-?\d{2}-?\d{2}$/
+        if (!phoneRegex.test(profileForm.value.phone)) {
+          throw new Error('Неверный формат телефона')
+        }
+
+        // Используем правильный метод updateProfile вместо updateUserMetadata
+        await authStore.updateProfile({
+          name: profileForm.value.name,
+          phone: profileForm.value.phone
+        })
+
+        showToast('Профиль успешно обновлен', 'success')
+      } catch (error) {
+        showToast(error.message || 'Ошибка при обновлении профиля', 'error')
+      } finally {
+        isLoading.value = false
+      }
     }
 
     const changePassword = async () => {
-      // Логика изменения пароля
+      try {
+        isLoading.value = true
+
+        // Проверяем совпадение паролей
+        if (passwordForm.value.new !== passwordForm.value.confirm) {
+          throw new Error('Пароли не совпадают')
+        }
+
+        // Проверяем сложность пароля
+        if (passwordForm.value.new.length < 8) {
+          throw new Error('Пароль должен содержать минимум 8 символов')
+        }
+
+        await authStore.updatePassword(
+          passwordForm.value.current,
+          passwordForm.value.new
+        )
+
+        // Очищаем форму
+        passwordForm.value = {
+          current: '',
+          new: '',
+          confirm: ''
+        }
+
+        showToast('Пароль успешно изменен', 'success')
+      } catch (error) {
+        showToast(error.message || 'Ошибка при изменении пароля', 'error')
+      } finally {
+        isLoading.value = false
+      }
     }
 
     return {
@@ -153,7 +208,8 @@ export default {
       passwordForm,
       handleLogout,
       updateProfile,
-      changePassword
+      changePassword,
+      isLoading
     }
   }
 }
@@ -367,5 +423,16 @@ export default {
 .btn-save:hover {
   background: #1ed760;
   transform: translateY(-2px);
+}
+
+.btn-save:disabled {
+  background: #404040;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-save:disabled:hover {
+  background: #404040;
+  transform: none;
 }
 </style>

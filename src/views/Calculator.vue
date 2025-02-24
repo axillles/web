@@ -17,14 +17,18 @@
         <label>Количество грузчиков</label>
         <div class="number-input">
           <button @click="decrementLoaders">-</button>
-          <input type="number" v-model="loadersCount" min="1" max="10" />
+          <span class="number-display">{{ loadersCount }}</span>
           <button @click="incrementLoaders">+</button>
         </div>
       </div>
 
       <div class="form-group">
         <label>Длительность (часов)</label>
-        <input type="number" v-model="duration" min="1" />
+        <div class="number-input">
+          <button @click="decrementDuration">-</button>
+          <span class="number-display">{{ duration }}</span>
+          <button @click="incrementDuration">+</button>
+        </div>
       </div>
 
       <div class="form-group" v-if="needsTransport">
@@ -35,10 +39,14 @@
         </select>
       </div>
 
-      <div class="total-section">
-        <h2>Итоговая стоимость</h2>
-        <div class="price">{{ calculateTotal }} BYN</div>
-        <button class="order-button" @click="showOrder">Заказать</button>
+      <div class="result-section">
+        <div class="total-price">
+          <span class="price-label">Стоимость:</span>
+          <span class="price-value">{{ totalPrice }} BYN</span>
+        </div>
+        <button class="order-button" @click="showOrderForm = true">
+          Заказать
+        </button>
       </div>
     </div>
 
@@ -46,11 +54,9 @@
     <div v-if="showOrderForm" class="modal">
       <div class="modal-content">
         <button class="close-button" @click="showOrderForm = false">&times;</button>
-        <h2>Оформление заказа</h2>
         <OrderForm
-          :service-price="calculateTotal / duration"
+          :service-price="totalPrice"
           :service-id="1"
-          :initial-duration="duration"
           @submit="handleOrderSubmit"
           @close="showOrderForm = false"
         />
@@ -86,21 +92,55 @@ export default {
         id: 1, // ID услуги для квартирного переезда
         price: 350, // Базовая цена за грузчика
       },
+      calculatedPrice: 0, // Добавляем поле для хранения рассчитанной цены
+      ordersStore: null // Добавляем поле для store
     }
+  },
+  created() {
+    // Инициализируем store при создании компонента
+    this.ordersStore = useOrdersStore()
   },
   computed: {
     needsTransport() {
       return ['moving', 'office'].includes(this.serviceType)
     },
-    calculateTotal() {
-      let total = this.loadersCount * this.pricePerHour.loader * this.duration
+    totalPrice() {
+      let price = 0
 
-      if (this.needsTransport) {
-        total += this.pricePerHour[this.vehicleType] * this.duration
+      // Базовая стоимость в зависимости от типа услуги
+      switch (this.serviceType) {
+        case 'moving':
+          price = 50
+          break
+        case 'office':
+          price = 60
+          break
+        case 'loading':
+          price = 40
+          break
+        case 'lifting':
+          price = 45
+          break
       }
 
-      return total
-    },
+      // Умножаем на количество часов
+      price *= this.duration
+
+      // Добавляем стоимость за грузчиков
+      price += this.loadersCount * this.pricePerHour.loader * this.duration
+
+      // Добавляем стоимость за этажи
+      if (this.serviceType === 'lifting') {
+        price += this.duration * 5
+      }
+
+      // Добавляем стоимость за транспорт
+      if (this.needsTransport) {
+        price += this.pricePerHour[this.vehicleType] * this.duration
+      }
+
+      return Math.round(price)
+    }
   },
   methods: {
     incrementLoaders() {
@@ -113,44 +153,44 @@ export default {
         this.loadersCount--
       }
     },
+    incrementDuration() {
+      if (this.duration < 24) {
+        this.duration++
+      }
+    },
+    decrementDuration() {
+      if (this.duration > 1) {
+        this.duration--
+      }
+    },
     async handleOrderSubmit(orderData) {
       try {
-        const ordersStore = useOrdersStore()
-
-        // Проверяем наличие обязательных полей
-        if (!orderData.contact_name || !orderData.phone || !orderData.payment_method) {
-          throw new Error('Заполните все обязательные поля')
-        }
-
-        // Формируем название услуги
-        const serviceTypes = {
-          moving: 'Квартирный переезд',
-          office: 'Офисный переезд',
-          loading: 'Погрузка/разгрузка',
-          lifting: 'Подъем на этаж'
-        }
-
-        // Логируем входящие данные
-        console.log('Входящие данные заказа:', orderData)
+        // Сначала вычисляем скидку
+        const discount = orderData.service_price - orderData.final_price
 
         const orderDetails = {
-          contact_name: orderData.contact_name.trim(),
-          phone: orderData.phone,
-          payment_method: orderData.payment_method,
-          service_title: serviceTypes[this.serviceType],
-          approximate_price: this.calculateTotal,
+          ...orderData,
+          service_type: this.serviceType,
+          hours: this.duration,
+          workers: this.loadersCount,
+          vehicle_type: this.needsTransport ? this.vehicleType : null,
+          // Правильно передаем цены
+          total_price: orderData.final_price, // Цена со скидкой (4185)
+          original_price: orderData.service_price, // Изначальная цена (4650)
+          discount: discount, // Размер скидки (465)
           status: 'new'
         }
 
-        // Логируем подготовленные данные
-        console.log('Подготовленные данные заказа:', orderDetails)
+        console.log('Отправляемые данные:', {
+          final_price: orderData.final_price,
+          service_price: orderData.service_price,
+          discount: discount
+        })
 
-        await ordersStore.createOrder(orderDetails)
+        await this.ordersStore.createOrder(orderDetails)
         this.showOrderForm = false
-        this.showToast('Заявка принята! Наш менеджер свяжется с вами в ближайшее время.', 'success')
-
+        this.showToast('Заказ успешно оформлен!', 'success')
       } catch (error) {
-        console.error('Ошибка при оформлении заказа:', error)
         this.showToast(error.message || 'Ошибка при оформлении заказа', 'error')
       }
     },
@@ -165,6 +205,11 @@ export default {
     }
   },
   inject: ['showToast'],
+  watch: {
+    totalPrice(newPrice) {
+      this.calculatedPrice = newPrice
+    }
+  }
 }
 </script>
 
@@ -251,15 +296,12 @@ export default {
   background: #1db954;
 }
 
-.number-input input {
-  width: 60px;
+.number-display {
+  min-width: 60px;
   text-align: center;
-  border: none;
-  background: transparent;
   color: #ffffff;
   font-size: 1.1rem;
-  padding: 0;
-  height: 36px;
+  font-weight: 500;
 }
 
 .form-group input:focus,
@@ -277,24 +319,26 @@ export default {
   margin-top: 2rem;
   padding-top: 2rem;
   border-top: 1px solid #404040;
-  text-align: center;
-}
-
-.result-section h2 {
-  color: #b3b3b3;
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .total-price {
-  text-align: center;
-  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.price-label {
+  font-size: 1.2rem;
+  color: #b3b3b3;
+}
+
+.price-value {
+  font-size: 1.5rem;
   font-weight: bold;
   color: #1db954;
-  margin-bottom: 1.5rem;
-  text-shadow: 0 0 20px rgba(29, 185, 84, 0.3);
 }
 
 .order-button {
@@ -314,8 +358,6 @@ export default {
 
 .order-button:hover {
   background: #1ed760;
-  transform: scale(1.05);
-  box-shadow: 0 0 20px rgba(29, 185, 84, 0.3);
 }
 
 .modal {
@@ -329,31 +371,31 @@ export default {
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 1rem;
 }
 
 .modal-content {
   background: #282828;
-  padding: 2rem;
+  padding: 1rem;
   border-radius: 8px;
   position: relative;
-  width: 90%;
-  max-width: 600px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .close-button {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
+  top: 0.5rem;
+  right: 0.5rem;
   background: none;
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
   color: #b3b3b3;
-  transition: color 0.3s ease;
-}
-
-.close-button:hover {
-  color: #ffffff;
+  z-index: 1;
 }
 </style>

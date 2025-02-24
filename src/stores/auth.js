@@ -62,14 +62,14 @@ export const useAuthStore = defineStore('auth', {
               name: userData.name,
               phone: userData.phone,
             },
+            emailRedirect: false
           },
         })
 
         if (error) throw error
 
         if (data?.user) {
-          this.user = data.user
-          this.isAuthenticated = true
+          await this.login(userData.email, userData.password)
           return true
         }
       } catch (error) {
@@ -138,6 +138,36 @@ export const useAuthStore = defineStore('auth', {
       } catch (error) {
         this.setError(error)
         throw error
+      }
+    },
+
+    async updatePassword(currentPassword, newPassword) {
+      this.loading = true
+      this.error = null
+      try {
+        // Сначала проверяем текущий пароль
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: this.user.email,
+          password: currentPassword
+        })
+
+        if (signInError) {
+          throw new Error('Неверный текущий пароль')
+        }
+
+        // Если текущий пароль верный, обновляем на новый
+        const { error: updateError } = await supabase.auth.updateUser({
+          password: newPassword
+        })
+
+        if (updateError) throw updateError
+
+        return true
+      } catch (error) {
+        this.setError(error)
+        throw error
+      } finally {
+        this.loading = false
       }
     },
   },

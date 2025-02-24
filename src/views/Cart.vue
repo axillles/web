@@ -9,11 +9,24 @@
           <div class="item-info">
             <h3>{{ item.title }}</h3>
             <p class="item-price">{{ item.price }} ₽/час</p>
+            <div class="item-params" v-if="hasServiceParams(item)">
+              <span v-if="item.workers">{{ item.workers }} грузчика</span>
+              <span v-if="item.hours">{{ item.hours }} часа</span>
+              <span v-if="item.vehicle_type">{{ getVehicleTypeText(item.vehicle_type) }}</span>
+            </div>
           </div>
           <div class="item-quantity">
-            <button @click="decrementQuantity(item)" :disabled="item.quantity <= 1">-</button>
-            <span>{{ item.quantity }}</span>
-            <button @click="incrementQuantity(item)" :disabled="item.quantity >= 12">+</button>
+            <button
+              @click="decrementQuantity(item)"
+              :disabled="item.quantity <= 1"
+              class="quantity-btn"
+            >-</button>
+            <span class="quantity-display">{{ item.quantity }}</span>
+            <button
+              @click="incrementQuantity(item)"
+              :disabled="item.quantity >= 12"
+              class="quantity-btn"
+            >+</button>
           </div>
           <div class="item-total">
             <AnimatedPrice :value="item.price * item.quantity" />
@@ -49,10 +62,10 @@
         <button class="close-button" @click="showOrderForm = false">&times;</button>
         <h2>Оформление заказа</h2>
         <OrderForm
+          :service-price="cartStore.totalPrice"
           :service-id="cartStore.items[0]?.id"
           @submit="handleOrderSubmit"
           @close="showOrderForm = false"
-          @message="handleMessage"
         />
       </div>
     </div>
@@ -104,55 +117,43 @@ export default {
     },
     async handleOrderSubmit(orderData) {
       try {
-        if (!this.cartStore || !this.cartStore.items.length) {
-          throw new Error('Корзина пуста')
-        }
+        const originalPrice = this.cartStore.totalPrice
+        const discount = orderData.service_price - orderData.final_price
 
-        // Проверяем обязательные поля
-        if (!orderData.contact_name || !orderData.phone || !orderData.payment_method) {
-          throw new Error('Заполните все обязательные поля')
-        }
+        // Преобразуем items в нужный формат
+        const cartItems = this.cartStore.items.map(item => ({
+          id: item.id,
+          title: item.title,
+          type: item.type,
+          price: item.price,
+          quantity: item.quantity,
+          hours: item.hours,
+          workers: item.workers,
+          vehicle_type: item.vehicle_type
+        }))
 
-        // Формируем данные заказа с проверкой на null
+        // Формируем данные заказа
         const orderDetails = {
-          contact_name: orderData.contact_name || '',
-          phone: orderData.phone || '',
-          payment_method: orderData.payment_method || '',
-          service_title: this.cartStore.items[0].title || '',
-          approximate_price: this.cartStore.totalPrice || 0,
-          status: 'new'
+          ...orderData,
+          service_type: 'cart',
+          total_price: orderData.final_price,
+          original_price: originalPrice,
+          discount: discount,
+          items: cartItems // Передаем массив товаров
         }
 
-        // Проверяем, что все обязательные поля заполнены
-        for (const [key, value] of Object.entries(orderDetails)) {
-          if (!value && value !== 0) {
-            throw new Error(`Поле ${key} обязательно для заполнения`)
-          }
-        }
+        console.log('Отправляемые данные заказа:', orderDetails)
+        console.log('Товары в заказе:', cartItems)
 
-        console.log('Отправляемые данные:', orderDetails)
-
-        const { data, error } = await supabase
-          .from('unconfirmed_orders')
-          .insert([orderDetails])
-
-        if (error) {
-          console.error('Детали ошибки:', error)
-          throw new Error(error.message)
-        }
+        const ordersStore = useOrdersStore()
+        await ordersStore.createOrder(orderDetails)
 
         this.cartStore.clearCart()
         this.showOrderForm = false
-        this.showToast('Заявка принята! Наш менеджер свяжется с вами в ближайшее время.', 'success')
-        this.$router.push('/order-success')
-
+        this.showToast('Заказ успешно оформлен!', 'success')
       } catch (error) {
-        console.error('Ошибка:', error)
-        this.showToast(error.message || 'Ошибка при отправке заявки', 'error')
+        this.showToast(error.message || 'Ошибка при оформлении заказа', 'error')
       }
-    },
-    handleMessage({ text, type }) {
-      this.showToast(text, type)
     },
     handleCheckoutClick() {
       const authStore = useAuthStore()
@@ -162,6 +163,16 @@ export default {
         return
       }
       this.showOrderForm = true
+    },
+    hasServiceParams(item) {
+      return item.workers || item.hours || item.vehicle_type
+    },
+    getVehicleTypeText(type) {
+      const types = {
+        gazelle: 'Газель (до 1.5 тонн)',
+        truck: 'Грузовик (до 5 тонн)'
+      }
+      return types[type] || type
     }
   },
   inject: ['showToast'],
@@ -230,7 +241,7 @@ export default {
   gap: 0.5rem;
 }
 
-.item-quantity button {
+.quantity-btn {
   width: 30px;
   height: 30px;
   border: 1px solid #404040;
@@ -239,21 +250,25 @@ export default {
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
 }
 
-.item-quantity button:hover:not(:disabled) {
+.quantity-btn:hover:not(:disabled) {
   background: #505050;
 }
 
-.item-quantity button:disabled {
+.quantity-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.item-quantity span {
-  color: #ffffff;
-  min-width: 20px;
+.quantity-display {
+  min-width: 30px;
   text-align: center;
+  font-size: 1.1rem;
 }
 
 .remove-button {
@@ -362,33 +377,40 @@ export default {
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 1rem;
 }
 
 .modal-content {
   background: #282828;
-  padding: 2rem;
+  padding: 1rem;
   border-radius: 8px;
   position: relative;
-  width: 90%;
-  max-width: 600px;
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .close-button {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
+  top: 0.5rem;
+  right: 0.5rem;
   background: none;
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
   color: #b3b3b3;
-  transition: color 0.3s ease;
+  z-index: 1;
 }
 
-.close-button:hover {
-  color: #ffffff;
+.item-params {
+  font-size: 0.85rem;
+  color: #b3b3b3;
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.25rem;
 }
 
 @media (max-width: 1024px) {

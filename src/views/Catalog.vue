@@ -1,43 +1,62 @@
 <template>
   <div class="catalog">
-    <div class="catalog-header">
-      <h1 class="catalog-title">Каталог услуг</h1>
-      <div class="catalog-controls">
-        <div class="filters">
-          <div class="filter-group">
-            <label>Категория:</label>
-            <select v-model="selectedCategory">
-              <option value="">Все категории</option>
-              <option value="loaders">Грузчики</option>
-              <option value="transport">Транспорт</option>
-              <option value="combos">Готовые комплексы</option>
-            </select>
-          </div>
+    <h1>Каталог услуг</h1>
 
-          <div class="filter-group">
-            <label>Сортировка:</label>
-            <select v-model="sortBy">
-              <option value="price-asc">Цена: по возрастанию</option>
-              <option value="price-desc">Цена: по убыванию</option>
-              <option value="popular">По популярности</option>
-            </select>
-          </div>
+    <!-- Фильтры и сортировка -->
+    <div class="filters-container">
+      <div class="filters-content">
+        <!-- Поиск -->
+        <div class="search-container">
+          <input
+            type="text"
+            v-model="searchQuery"
+            placeholder="Поиск услуг..."
+            class="search-input"
+          >
         </div>
-      </div>
-      <div class="cart-info" v-if="cartStore.totalItems > 0">
-        <router-link to="/cart" class="cart-link">
-          Корзина ({{ cartStore.totalItems }})
-        </router-link>
+
+        <!-- Категории -->
+        <div class="categories">
+          <button
+            v-for="category in categories"
+            :key="category.id"
+            :class="{ active: selectedCategory === category.id }"
+            @click="selectedCategory = category.id"
+            class="category-button"
+          >
+            {{ category.name }}
+          </button>
+        </div>
+
+        <!-- Сортировка -->
+        <div class="sort-controls">
+          <button
+            v-for="option in sortOptions"
+            :key="option.value"
+            :class="{ active: sortBy === option.value }"
+            @click="sortBy = option.value"
+            class="sort-button"
+          >
+            {{ option.label }}
+          </button>
+        </div>
+
+        <!-- Корзина -->
+        <div class="cart-summary" v-if="cartStore.totalItems > 0">
+          <span class="cart-count">{{ cartStore.totalItems }} услуг</span>
+          <span class="cart-total">{{ cartStore.totalPrice }} ₽</span>
+          <router-link to="/cart" class="btn-cart">Перейти в корзину</router-link>
+        </div>
       </div>
     </div>
 
+    <!-- Список услуг -->
     <div class="services-grid">
       <ServiceCard
-        v-for="service in services"
+        v-for="service in filteredAndSortedServices"
         :key="service.id"
         :service="service"
-        @added-to-cart="handleAddedToCart"
-        @details="handleDetails"
+        @added-to-cart="showAddedToCartMessage"
       />
     </div>
 
@@ -74,15 +93,38 @@ export default {
   data() {
     return {
       selectedCategory: '',
-      sortBy: 'price-asc',
+      sortBy: 'price_asc',
       servicesStore: useServicesStore(),
       selectedService: null,
       cartStore: useCartStore(),
+      isLoading: true,
+      categories: [
+        { id: '', name: 'Все услуги' },
+        { id: 'loaders', name: 'Грузчики' },
+        { id: 'transport', name: 'Транспорт' },
+        { id: 'combos', name: 'Готовые комплексы' }
+      ],
+      sortOptions: [
+        { value: 'price_asc', label: '↑ По цене' },
+        { value: 'price_desc', label: '↓ По цене' },
+        { value: 'name_asc', label: 'А-Я' },
+        { value: 'name_desc', label: 'Я-А' }
+      ],
+      searchQuery: '',
     }
   },
   computed: {
-    services() {
+    filteredAndSortedServices() {
       let filtered = [...this.servicesStore.getAllServices]
+
+      // Поиск
+      if (this.searchQuery.trim()) {
+        const query = this.searchQuery.toLowerCase().trim()
+        filtered = filtered.filter(service =>
+          service.title.toLowerCase().includes(query) ||
+          service.description.toLowerCase().includes(query)
+        )
+      }
 
       // Фильтрация по категории
       if (this.selectedCategory) {
@@ -92,34 +134,34 @@ export default {
       // Сортировка
       filtered.sort((a, b) => {
         switch (this.sortBy) {
-          case 'price-asc':
+          case 'price_asc':
             return a.price - b.price
-          case 'price-desc':
+          case 'price_desc':
             return b.price - a.price
+          case 'name_asc':
+            return a.title.localeCompare(b.title)
+          case 'name_desc':
+            return b.title.localeCompare(a.title)
           default:
             return 0
         }
       })
 
       return filtered
-    },
+    }
   },
   async created() {
     try {
       await this.servicesStore.fetchServices()
     } catch (error) {
       this.showToast('Ошибка при загрузке услуг', 'error')
+    } finally {
+      this.isLoading = false
     }
   },
   methods: {
-    handleAddedToCart(service) {
+    showAddedToCartMessage(service) {
       this.showToast(`Услуга "${service.title}" добавлена в корзину`, 'success')
-    },
-    handleDetails(service) {
-      this.$router.push({
-        name: 'ServiceDetails',
-        params: { id: service.id },
-      })
     },
     showOrderForm(service) {
       this.selectedService = service
@@ -138,6 +180,20 @@ export default {
         this.showToast(error.message || 'Ошибка при оформлении заказа', 'error')
       }
     },
+    addToCart(service) {
+      // Добавляем базовые параметры для каждого типа услуги
+      const serviceParams = {
+        moving: { hours: 3, workers: 2, vehicle_type: 'gazelle' },
+        office: { hours: 4, workers: 3, vehicle_type: 'truck' },
+        loading: { hours: 2, workers: 2 },
+        lifting: { hours: 2, workers: 2 }
+      }
+
+      const params = serviceParams[service.type] || {}
+
+      this.cartStore.addToCart(service, params)
+      this.showToast('Услуга добавлена в корзину', 'success')
+    }
   },
   inject: ['showToast'],
 }
@@ -146,77 +202,148 @@ export default {
 <style scoped>
 .catalog {
   padding: 2rem;
-  background: #121212;
   min-height: 100vh;
+  color: #ffffff;
 }
 
-.catalog-header {
+h1 {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #ffffff;
+}
+
+.filters-container {
+  position: sticky;
+  top: 0;
+  background: #121212;
+  padding: 1rem 0;
+  margin-bottom: 2rem;
+  z-index: 10;
+}
+
+.filters-content {
+  max-width: 1200px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 1rem;
-  margin-bottom: 2rem;
 }
 
-.catalog-title {
-  text-align: center;
-  color: #ffffff;
-  font-size: 2.5rem;
+.search-container {
+  width: 100%;
+  max-width: 600px;
   margin-bottom: 1rem;
 }
 
-.catalog-controls {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-}
-
-.filters {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-.filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.filter-group label {
-  font-size: 0.9rem;
-  color: #b3b3b3;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.filter-group select {
-  padding: 0.75rem;
-  border: 1px solid #404040;
-  border-radius: 4px;
-  background: #404040;
+.search-input {
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 50px;
+  background: #282828;
   color: #ffffff;
-  min-width: 200px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  background: #404040;
+  box-shadow: 0 0 0 2px #1db954;
+}
+
+.search-input::placeholder {
+  color: #b3b3b3;
+}
+
+.categories {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.category-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 50px;
+  background: #282828;
+  color: #ffffff;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.filter-group select:hover {
-  border-color: #1db954;
-}
-
-.filter-group select:focus {
-  outline: none;
-  border-color: #1db954;
-}
-
-.filter-group select option {
+.category-button:hover {
   background: #404040;
+}
+
+.category-button.active {
+  background: #1db954;
+  color: white;
+}
+
+.sort-controls {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.sort-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 50px;
+  background: #282828;
   color: #ffffff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.sort-button:hover {
+  background: #404040;
+}
+
+.sort-button.active {
+  background: #1db954;
+  color: white;
+}
+
+.cart-summary {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: #282828;
+  border-radius: 50px;
+}
+
+.cart-count {
+  color: #b3b3b3;
+}
+
+.cart-total {
+  color: #1db954;
+  font-weight: bold;
+}
+
+.btn-cart {
+  background: #1db954;
+  color: white;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  transition: background 0.3s ease;
+}
+
+.btn-cart:hover {
+  background: #1ed760;
 }
 
 .services-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 2rem;
   max-width: 1200px;
   margin: 0 auto;
@@ -325,60 +452,46 @@ export default {
   margin-bottom: 1.5rem;
 }
 
-.cart-info {
-  margin-top: 1rem;
-  display: flex;
-  justify-content: flex-end;
-}
+@media (max-width: 768px) {
+  .catalog {
+    padding: 1rem;
+  }
 
-.cart-link {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  text-decoration: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 50px;
-  background: #1db954;
-  color: #ffffff;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
+  .filters-content {
+    padding: 0 1rem;
+  }
 
-.cart-link:hover {
-  background: #1ed760;
-  transform: scale(1.05);
-  box-shadow: 0 0 20px rgba(29, 185, 84, 0.3);
-}
-
-@media (max-width: 1024px) {
-  .filter-section {
+  .categories {
     gap: 0.5rem;
-    padding: 0.5rem;
   }
 
-  .category-select,
-  .sort-select {
+  .category-button {
+    padding: 0.5rem 1rem;
     font-size: 0.9rem;
-    padding: 0.4rem;
-    width: 160px;
+  }
+
+  .cart-summary {
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .sort-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .search-container {
+    padding: 0 1rem;
+  }
+
+  .search-input {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
   }
 }
 
-@media (max-width: 480px) {
-  .filter-section {
-    gap: 0.3rem;
-    padding: 0.3rem;
-  }
-
-  .category-select,
-  .sort-select {
-    font-size: 0.85rem;
-    padding: 0.3rem;
-    width: 140px;
-  }
-
-  .filter-label {
-    font-size: 0.85rem;
-  }
+/* Удаляем старые стили для select */
+.sort-select {
+  display: none;
 }
 </style>

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import { supabase } from '@/config/supabase'
-import { useAuthStore } from './auth'
+import { supabase } from '@/lib/supabaseClient'
+import { useAuthStore } from '@/stores/auth'
 
 export const useOrdersStore = defineStore('orders', {
   state: () => ({
@@ -17,45 +17,48 @@ export const useOrdersStore = defineStore('orders', {
     async createOrder(orderData) {
       this.loading = true
       this.error = null
+
       try {
         const authStore = useAuthStore()
 
-        // Проверяем наличие обязательных полей
-        if (!orderData.contact_name || !orderData.phone || !orderData.payment_method) {
+        // Проверяем обязательные поля
+        if (!orderData.contact_name || !orderData.phone || !orderData.address || !orderData.datetime || !orderData.payment_method) {
           throw new Error('Не заполнены обязательные поля')
         }
 
-        // Используем существующую связь с auth.users.id
-        const orderPayload = {
+        // Формируем данные заказа
+        const orderDetails = {
           contact_name: orderData.contact_name.trim(),
-          phone: orderData.phone,
+          phone: orderData.phone.trim(),
+          address: orderData.address.trim(),
+          datetime: orderData.datetime,
           payment_method: orderData.payment_method,
-          service_title: orderData.service_title,
-          approximate_price: orderData.approximate_price,
+          service_type: orderData.service_type || null,
+          total_price: Number(orderData.total_price),
+          original_price: Number(orderData.original_price),
+          discount: Number(orderData.discount),
+          promo_code: orderData.promo_code || null,
           status: 'new',
-          user_id: authStore.user.id // Напрямую используем ID из auth.users
+          comment: orderData.comment?.trim() || null,
+          user_id: authStore.user?.id || null,
+          // Для заказов из корзины сохраняем items как JSON
+          items: orderData.items ? JSON.stringify(orderData.items) : null
         }
 
-        console.log('Order payload:', orderPayload)
+        console.log('Отправляем заказ:', orderDetails)
 
-        // Используем RLS политику для автоматической привязки к пользователю
         const { data, error } = await supabase
-          .from('unconfirmed_orders')
-          .insert([orderPayload])
+          .from('service_orders')
+          .insert([orderDetails])
           .select()
           .single()
 
-        if (error) {
-          console.error('Ошибка при создании заказа:', error)
-          throw error
-        }
+        if (error) throw error
 
-        console.log('Created order:', data)
         return data
       } catch (error) {
-        console.error('Order creation error:', error)
-        this.setError(error)
-        throw error
+        console.error('Error creating order:', error)
+        throw new Error(error.message || 'Ошибка при создании заказа')
       } finally {
         this.loading = false
       }
