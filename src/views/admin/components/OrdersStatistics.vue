@@ -52,7 +52,9 @@
     <!-- График заказов -->
     <div class="chart-container">
       <h3>Динамика заказов</h3>
-      <div class="chart" ref="ordersChart"></div>
+      <div style="position: relative; height: 300px;">
+        <canvas ref="ordersChart"></canvas>
+      </div>
     </div>
 
     <!-- Популярные услуги -->
@@ -83,7 +85,6 @@ Chart.register(...registerables)
 
 export default {
   name: 'OrdersStatistics',
-
   data() {
     return {
       selectedPeriod: 'month',
@@ -122,7 +123,22 @@ export default {
   methods: {
     async fetchStatistics() {
       try {
-        const startDate = this.getStartDate()
+        // Получаем дату начала предыдущего периода
+        const startDate = new Date(this.getStartDate())
+        switch (this.selectedPeriod) {
+          case 'week':
+            startDate.setDate(startDate.getDate() - 7)
+            break
+          case 'month':
+            startDate.setMonth(startDate.getMonth() - 1)
+            break
+          case 'quarter':
+            startDate.setMonth(startDate.getMonth() - 3)
+            break
+          case 'year':
+            startDate.setFullYear(startDate.getFullYear() - 1)
+            break
+        }
 
         const { data: orders, error } = await supabase
           .from('service_orders')
@@ -132,8 +148,8 @@ export default {
 
         if (error) throw error
 
-        this.calculateStatistics(orders)
-        this.updateChart(orders)
+        this.calculateStatistics(orders || [])
+        await this.updateChart(orders || [])
       } catch (error) {
         console.error('Error fetching statistics:', error)
       }
@@ -155,119 +171,100 @@ export default {
       }
     },
 
-    updateChart(orders) {
-      // Группируем заказы по датам
-      const ordersByDate = orders.reduce((acc, order) => {
-        const date = new Date(order.created_at).toLocaleDateString('ru-RU')
-        acc[date] = (acc[date] || 0) + 1
-        return acc
-      }, {})
-
-      const labels = Object.keys(ordersByDate)
-      const data = Object.values(ordersByDate)
-
-      // Уничтожаем предыдущий график если он существует
-      if (this.ordersChart) {
-        this.ordersChart.destroy()
-      }
-
-      // Создаем новый график
-      const ctx = this.$refs.ordersChart.getContext('2d')
-      this.ordersChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [{
-            label: 'Количество заказов',
-            data,
-            borderColor: '#1db954',
-            backgroundColor: 'rgba(29, 185, 84, 0.1)',
-            tension: 0.4,
-            fill: true
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: false
-            },
-            tooltip: {
-              mode: 'index',
-              intersect: false,
-              backgroundColor: '#282828',
-              titleColor: '#ffffff',
-              bodyColor: '#b3b3b3',
-              borderColor: '#404040',
-              borderWidth: 1
-            }
-          },
-          scales: {
-            x: {
-              grid: {
-                color: '#404040'
-              },
-              ticks: {
-                color: '#b3b3b3'
-              }
-            },
-            y: {
-              beginAtZero: true,
-              grid: {
-                color: '#404040'
-              },
-              ticks: {
-                color: '#b3b3b3',
-                stepSize: 1
-              }
+    async updateChart(orders) {
+      try {
+        // Группируем заказы по датам
+        const ordersByDate = orders.reduce((acc, order) => {
+          const date = new Date(order.created_at).toLocaleDateString('ru-RU')
+          if (!acc[date]) {
+            acc[date] = {
+              count: 0,
+              revenue: 0
             }
           }
-        }
-      })
+          acc[date].count += 1
+          acc[date].revenue += Number(order.total_price) || 0
+          return acc
+        }, {})
+
+        const labels = Object.keys(ordersByDate)
+        const orderCounts = Object.values(ordersByDate).map(data => data.count)
+        const revenues = Object.values(ordersByDate).map(data => data.revenue)
+
+        // Инициализируем новый график с двумя наборами данных
+        await this.initChart(labels, orderCounts, revenues)
+      } catch (error) {
+        console.error('Error updating chart:', error)
+      }
     },
 
     calculateStatistics(orders) {
-      // Разделяем заказы на текущий и предыдущий периоды
-      const midPoint = new Date(this.getStartDate().getTime() +
-        (new Date() - this.getStartDate().getTime()) / 2)
+      // Разделяем заказы на текущий и предыдущий период
+      const now = new Date()
+      const periodStart = this.getStartDate()
+      const previousPeriodStart = new Date(periodStart)
 
-      const currentPeriodOrders = orders.filter(order =>
-        new Date(order.created_at) > midPoint)
-      const previousPeriodOrders = orders.filter(order =>
-        new Date(order.created_at) <= midPoint)
+      // Вычисляем начало предыдущего периода
+      switch (this.selectedPeriod) {
+        case 'week':
+          previousPeriodStart.setDate(previousPeriodStart.getDate() - 7)
+          break
+        case 'month':
+          previousPeriodStart.setMonth(previousPeriodStart.getMonth() - 1)
+          break
+        case 'quarter':
+          previousPeriodStart.setMonth(previousPeriodStart.getMonth() - 3)
+          break
+        case 'year':
+          previousPeriodStart.setFullYear(previousPeriodStart.getFullYear() - 1)
+          break
+      }
 
-      // Текущий период
-      const currentStats = this.getStatsForOrders(currentPeriodOrders)
-      // Предыдущий период
-      const previousStats = this.getStatsForOrders(previousPeriodOrders)
+      // Фильтруем заказы по периодам
+      const currentPeriodOrders = orders.filter(order => {
+        const orderDate = new Date(order.created_at)
+        return orderDate >= periodStart && orderDate <= now
+      })
 
-      // Рассчитываем изменения
+      const previousPeriodOrders = orders.filter(order => {
+        const orderDate = new Date(order.created_at)
+        return orderDate >= previousPeriodStart && orderDate < periodStart
+      })
+
+      // Рассчитываем текущие показатели
+      const currentStats = {
+        totalOrders: currentPeriodOrders.length,
+        totalRevenue: currentPeriodOrders.reduce((sum, order) => sum + (Number(order.total_price) || 0), 0),
+        averageOrder: currentPeriodOrders.length ?
+          Math.round(currentPeriodOrders.reduce((sum, order) => sum + (Number(order.total_price) || 0), 0) / currentPeriodOrders.length) : 0,
+        cancelledOrders: currentPeriodOrders.filter(order => order.status === 'cancelled').length
+      }
+
+      // Рассчитываем предыдущие показатели
+      const previousStats = {
+        totalOrders: previousPeriodOrders.length,
+        totalRevenue: previousPeriodOrders.reduce((sum, order) => sum + (Number(order.total_price) || 0), 0),
+        averageOrder: previousPeriodOrders.length ?
+          Math.round(previousPeriodOrders.reduce((sum, order) => sum + (Number(order.total_price) || 0), 0) / previousPeriodOrders.length) : 0,
+        cancelledOrders: previousPeriodOrders.filter(order => order.status === 'cancelled').length
+      }
+
+      // Обновляем статистику с процентами изменений
       this.stats = {
         ...currentStats,
-        ordersChange: this.calculateChange(previousStats.totalOrders, currentStats.totalOrders),
-        revenueChange: this.calculateChange(previousStats.totalRevenue, currentStats.totalRevenue),
-        averageOrderChange: this.calculateChange(previousStats.averageOrder, currentStats.averageOrder),
-        cancelledOrdersChange: this.calculateChange(previousStats.cancelledOrders, currentStats.cancelledOrders)
+        ordersChange: this.calculatePercentage(currentStats.totalOrders, previousStats.totalOrders),
+        revenueChange: this.calculatePercentage(currentStats.totalRevenue, previousStats.totalRevenue),
+        averageOrderChange: this.calculatePercentage(currentStats.averageOrder, previousStats.averageOrder),
+        cancelledOrdersChange: this.calculatePercentage(currentStats.cancelledOrders, previousStats.cancelledOrders),
+        popularServices: this.getPopularServices(currentPeriodOrders)
       }
+
+      // Обновляем максимальное количество для прогресс-баров
+      this.stats.maxServiceCount = Math.max(...this.stats.popularServices.map(service => service.count))
     },
 
-    getStatsForOrders(orders) {
-      const totalOrders = orders.length
-      const totalRevenue = orders.reduce((sum, order) => sum + order.total_price, 0)
-      const averageOrder = totalOrders ? Math.round(totalRevenue / totalOrders) : 0
-      const cancelledOrders = orders.filter(order => order.status === 'cancelled').length
-
-      return {
-        totalOrders,
-        totalRevenue,
-        averageOrder,
-        cancelledOrders
-      }
-    },
-
-    calculateChange(previous, current) {
-      if (!previous) return 0
+    calculatePercentage(current, previous) {
+      if (previous === 0) return current > 0 ? 100 : 0
       return Math.round(((current - previous) / previous) * 100)
     },
 
@@ -284,6 +281,151 @@ export default {
 
     formatPrice(price) {
       return `${price.toLocaleString('ru-RU')} ₽`
+    },
+
+    getPopularServices(orders) {
+      const serviceCounts = orders.reduce((acc, order) => {
+        const service = this.getServiceTypeText(order.service_type)
+        acc[service] = (acc[service] || 0) + 1
+        return acc
+      }, {})
+
+      return Object.entries(serviceCounts).map(([service, count]) => ({
+        title: service,
+        count: count,
+        id: service.replace(/\s+/g, '-').toLowerCase()
+      }))
+    },
+
+    async initChart(labels = [], orderCounts = [], revenues = []) {
+      try {
+        if (this.ordersChart) {
+          this.ordersChart.destroy()
+        }
+
+        await this.$nextTick()
+        const canvas = this.$refs.ordersChart
+        if (!canvas) {
+          console.error('Canvas element not found')
+          return
+        }
+
+        const ctx = canvas.getContext('2d')
+        this.ordersChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Количество заказов',
+                data: orderCounts,
+                borderColor: '#1db954',
+                backgroundColor: 'rgba(29, 185, 84, 0.1)',
+                tension: 0.4,
+                fill: true,
+                yAxisID: 'y'
+              },
+              {
+                label: 'Выручка',
+                data: revenues,
+                borderColor: '#2196F3',
+                backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                tension: 0.4,
+                fill: true,
+                yAxisID: 'y1'
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+              mode: 'index',
+              intersect: false,
+            },
+            plugins: {
+              legend: {
+                display: true,
+                position: 'top',
+                labels: {
+                  color: '#b3b3b3',
+                  usePointStyle: true,
+                  padding: 20
+                }
+              },
+              tooltip: {
+                mode: 'index',
+                intersect: false,
+                backgroundColor: '#282828',
+                titleColor: '#ffffff',
+                bodyColor: '#b3b3b3',
+                borderColor: '#404040',
+                borderWidth: 1,
+                callbacks: {
+                  label: function(context) {
+                    let label = context.dataset.label || ''
+                    if (label) {
+                      label += ': '
+                    }
+                    if (context.datasetIndex === 1) {
+                      label += new Intl.NumberFormat('ru-RU', {
+                        style: 'currency',
+                        currency: 'RUB'
+                      }).format(context.parsed.y)
+                    } else {
+                      label += context.parsed.y
+                    }
+                    return label
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                grid: {
+                  color: '#404040'
+                },
+                ticks: {
+                  color: '#b3b3b3'
+                }
+              },
+              y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+                beginAtZero: true,
+                grid: {
+                  color: '#404040'
+                },
+                ticks: {
+                  color: '#b3b3b3',
+                  stepSize: 1
+                }
+              },
+              y1: {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                beginAtZero: true,
+                grid: {
+                  drawOnChartArea: false
+                },
+                ticks: {
+                  color: '#b3b3b3',
+                  callback: function(value) {
+                    return new Intl.NumberFormat('ru-RU', {
+                      style: 'currency',
+                      currency: 'RUB'
+                    }).format(value)
+                  }
+                }
+              }
+            }
+          }
+        })
+      } catch (error) {
+        console.error('Error initializing chart:', error)
+      }
     }
   }
 }

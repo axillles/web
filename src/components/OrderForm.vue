@@ -26,7 +26,7 @@
           placeholder="+375 XX XXX-XX-XX"
           @input="formatPhone"
         />
-        <small>Наш менеджер перезвонит для уточнения деталей</small>
+        <!-- <small>Наш менеджер перезвонит для уточнения деталей</small> -->
         <small class="error-message" v-if="errors.phone">{{ errors.phone }}</small>
       </div>
 
@@ -98,7 +98,7 @@
         </div>
         <small class="error-message" v-if="errors.promo_code">{{ errors.promo_code }}</small>
         <div v-if="promoApplied" class="promo-info">
-          <span class="discount-amount">Скидка: {{ discount }} ₽</span>
+          <span class="discount-amount">Скидка: {{ discount }} руб</span>
           <button class="btn-remove-promo" @click="removePromo">×</button>
         </div>
       </div>
@@ -115,10 +115,10 @@
 
       <div class="total-amount">
         <div v-if="promoApplied" class="original-price">
-          <s>{{ servicePrice }} ₽</s>
+          <s>{{ servicePrice }} руб</s>
         </div>
         <div class="final-price">
-          Итого: {{ finalPrice }} ₽
+          Итого: {{ finalPrice }} руб
         </div>
       </div>
 
@@ -242,7 +242,7 @@ export default {
           this.discount = result.discount
           this.errors.promo_code = ''
           this.$emit('message', {
-            text: `Промокод применен! Скидка: ${result.discount} ₽`,
+            text: `Промокод применен! Скидка: ${result.discount} руб`,
             type: 'success'
           })
         }
@@ -310,19 +310,21 @@ export default {
         datetime: this.formData.datetime,
         payment_method: this.formData.payment_method,
         promo_code: this.promoApplied ? this.formData.promo_code : null,
+        service_id: this.serviceId,
         service_price: this.servicePrice,
         final_price: this.finalPrice,
+        discount: this.discount,
         comment: this.formData.comment || null
       }
 
-      console.log('Отправляемые данные из формы:', {
-        service_price: this.servicePrice,
-        final_price: this.finalPrice,
-        discount: this.discount
-      })
-
-      this.$emit('submit', orderData)
-      this.isSubmitting = false
+      try {
+        this.$emit('submit', orderData)
+      } catch (error) {
+        console.error('Error submitting order:', error)
+        this.showError('Ошибка при оформлении заказа')
+      } finally {
+        this.isSubmitting = false
+      }
     }
   }
 }

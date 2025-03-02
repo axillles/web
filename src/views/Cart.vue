@@ -8,7 +8,7 @@
           <img :src="item.image" :alt="item.title" class="item-image" />
           <div class="item-info">
             <h3>{{ item.title }}</h3>
-            <p class="item-price">{{ item.price }} ₽/час</p>
+            <p class="item-price">{{ item.price }} руб/час</p>
             <div class="item-params" v-if="hasServiceParams(item)">
               <span v-if="item.workers">{{ item.workers }} грузчика</span>
               <span v-if="item.hours">{{ item.hours }} часа</span>

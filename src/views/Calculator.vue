@@ -22,7 +22,7 @@
         </div>
       </div>
 
-      <div class="form-group">
+      <div class="form-group" v-if="needsTime">
         <label>Длительность (часов)</label>
         <div class="number-input">
           <button @click="decrementDuration">-</button>
@@ -31,11 +31,20 @@
         </div>
       </div>
 
+      <div class="form-group" v-if="needsLevel">
+        <label>Этаж</label>
+        <div class="number-input">
+          <button @click="decrementLevel">-</button>
+          <span class="number-display">{{ level }}</span>
+          <button @click="incrementLevel">+</button>
+        </div>
+      </div>
+
       <div class="form-group" v-if="needsTransport">
         <label>Тип транспорта</label>
         <select v-model="vehicleType">
-          <option value="gazelle">Газель (до 1.5 тонн)</option>
-          <option value="truck">Грузовик (до 5 тонн)</option>
+          <option value="gazelle">Газель (до 15 кубов)</option>
+          <option value="truck">Грузовик (до 30 кубов)</option>
         </select>
       </div>
 
@@ -81,16 +90,17 @@ export default {
       serviceType: 'moving',
       loadersCount: 2,
       duration: 3,
+      level: 2,
       vehicleType: 'gazelle',
       pricePerHour: {
-        loader: 350,
-        gazelle: 800,
-        truck: 1200,
+        loader: 15,
+        gazelle: 45,
+        truck: 90,
       },
       showOrderForm: false,
       selectedService: {
         id: 1, // ID услуги для квартирного переезда
-        price: 350, // Базовая цена за грузчика
+        price: 15, // Базовая цена за грузчика
       },
       calculatedPrice: 0, // Добавляем поле для хранения рассчитанной цены
       ordersStore: null // Добавляем поле для store
@@ -103,6 +113,12 @@ export default {
   computed: {
     needsTransport() {
       return ['moving', 'office'].includes(this.serviceType)
+    },
+    needsTime() {
+      return ['moving', 'office', 'loading'].includes(this.serviceType)
+    },
+    needsLevel(){
+    return['lifting'].includes(this.serviceType)
     },
     totalPrice() {
       let price = 0
@@ -119,7 +135,7 @@ export default {
           price = 40
           break
         case 'lifting':
-          price = 45
+          price = 2
           break
       }
 
@@ -131,7 +147,7 @@ export default {
 
       // Добавляем стоимость за этажи
       if (this.serviceType === 'lifting') {
-        price += this.duration * 5
+        price += this.level * 2
       }
 
       // Добавляем стоимость за транспорт
@@ -161,6 +177,16 @@ export default {
     decrementDuration() {
       if (this.duration > 1) {
         this.duration--
+      }
+    },
+    incrementLevel() {
+      if (this.level < 50) {
+        this.level++
+      }
+    },
+    decrementLevel() {
+      if (this.level < 50) {
+        this.level--
       }
     },
     async handleOrderSubmit(orderData) {
@@ -268,6 +294,16 @@ export default {
 }
 
 .number-input {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #404040;
+  border-radius: 4px;
+  padding: 0.25rem;
+  border: 1px solid #404040;
+}
+
+.level-input {
   display: flex;
   align-items: center;
   gap: 0.5rem;

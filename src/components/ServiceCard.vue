@@ -3,8 +3,8 @@
     <img :src="service.image" :alt="service.title" class="service-image" />
     <div class="service-content">
       <h3>{{ service.title }}</h3>
-      <p class="service-description">{{ service.description }}</p>
-      <div class="service-price">от {{ service.price }} ₽/час</div>
+      <p class="service-description">{{ truncatedDescription }}</p>
+      <div class="service-price">от {{ service.price }} руб/час</div>
       <div class="service-actions">
         <button class="btn-add-to-cart" @click="addToCart(service)">В корзину</button>
         <router-link :to="`/service/${service.id}`" class="btn-details">Подробнее</router-link>
@@ -34,6 +34,15 @@ export default {
   data() {
     return {
       showOrderModal: false,
+    }
+  },
+  computed: {
+    truncatedDescription() {
+      const words = this.service.description.split(' ');
+      if (words.length > 10) {
+        return words.slice(0, 10).join(' ') + '...';
+      }
+      return this.service.description;
     }
   },
   mounted() {
@@ -93,7 +102,7 @@ export default {
 .service-image {
   width: 100%;
   height: 200px;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: 8px;
   margin-bottom: 1rem;
 }

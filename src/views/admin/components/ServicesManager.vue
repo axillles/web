@@ -8,14 +8,55 @@
       </button>
     </div>
 
+    <!-- Фильтры и сортировка (по аналогии с каталогом) -->
+    <div class="filters-container">
+      <div class="filters-content">
+        <!-- Поиск -->
+        <div class="search-container">
+          <input
+            type="text"
+            v-model="searchQuery"
+            placeholder="Поиск услуг..."
+            class="search-input"
+          >
+        </div>
+
+        <!-- Категории -->
+        <div class="categories">
+          <button
+            v-for="category in categories"
+            :key="category.id"
+            :class="{ active: selectedCategory === category.id }"
+            @click="selectedCategory = category.id"
+            class="category-button"
+          >
+            {{ category.name }}
+          </button>
+        </div>
+
+        <!-- Сортировка -->
+        <div class="sort-controls">
+          <button
+            v-for="option in sortOptions"
+            :key="option.value"
+            :class="{ active: sortBy === option.value }"
+            @click="sortBy = option.value"
+            class="sort-button"
+          >
+            {{ option.label }}
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div class="services-grid">
-      <div v-for="service in services" :key="service.id" class="service-card">
+      <div v-for="service in filteredAndSortedServices" :key="service.id" class="service-card">
         <img :src="service.image" :alt="service.title" class="service-image" />
         <div class="service-content">
           <h3>{{ service.title }}</h3>
-          <p class="service-description">{{ service.description }}</p>
-          <div class="service-category">{{ service.category }}</div>
-          <div class="service-price">{{ service.price }} ₽/час</div>
+          <p class="service-description">{{ truncatedDescription(service.description) }}</p>
+          <div class="service-category">{{ getCategoryName(service.category) }}</div>
+          <div class="service-price">{{ service.price }} руб/час</div>
 
           <div v-if="service.features?.length" class="service-features">
             <h4>Особенности:</h4>
@@ -35,7 +76,7 @@
             <button class="edit-btn" @click="editService(service)">
               <span class="material-icons">edit</span>
             </button>
-            <button class="delete-btn" @click="confirmDelete(service.id)">
+            <button class="delete-btn" @click="confirmDelete(service)">
               <span class="material-icons">delete</span>
             </button>
           </div>
@@ -74,23 +115,22 @@
           </div>
 
           <div class="form-group">
-            <label>Цена (₽/час)</label>
+            <label>Цена (руб/час)</label>
             <input
               v-model.number="formData.price"
               type="number"
               required
               min="0"
-              step="10"
+              step="1"
             >
           </div>
 
           <div class="form-group">
-            <label>Тип услуги</label>
-            <select v-model="formData.type" required>
-              <option value="moving">Квартирный переезд</option>
-              <option value="office">Офисный переезд</option>
-              <option value="loading">Погрузка/разгрузка</option>
-              <option value="lifting">Подъем на этаж</option>
+            <label>Категория услуги</label>
+            <select v-model="formData.category" required>
+              <option value="loaders">Грузчики</option>
+              <option value="transport">Транспорт</option>
+              <option value="combos">Готовые комплексы</option>
             </select>
           </div>
 
@@ -150,13 +190,66 @@ export default {
         title: '',
         description: '',
         price: 0,
-        type: 'moving',
+        category: 'loaders',
         image: null,
         features: [],
         requirements: [],
         pricing: {}
       },
-      imagePreview: null
+      imagePreview: null,
+      searchQuery: '',
+      selectedCategory: '',
+      sortBy: 'price_asc',
+      categories: [
+        { id: '', name: 'Все услуги' },
+        { id: 'loaders', name: 'Грузчики' },
+        { id: 'transport', name: 'Транспорт' },
+        { id: 'combos', name: 'Готовые комплексы' }
+      ],
+      sortOptions: [
+        { value: 'price_asc', label: '↑ По цене' },
+        { value: 'price_desc', label: '↓ По цене' },
+        { value: 'name_asc', label: 'А-Я' },
+        { value: 'name_desc', label: 'Я-А' }
+      ]
+    }
+  },
+
+  computed: {
+    filteredAndSortedServices() {
+      let filtered = [...this.services]
+
+      // Поиск
+      if (this.searchQuery.trim()) {
+        const query = this.searchQuery.toLowerCase().trim()
+        filtered = filtered.filter(service =>
+          service.title.toLowerCase().includes(query) ||
+          service.description.toLowerCase().includes(query)
+        )
+      }
+
+      // Фильтрация по категории
+      if (this.selectedCategory) {
+        filtered = filtered.filter((service) => service.category === this.selectedCategory)
+      }
+
+      // Сортировка
+      filtered.sort((a, b) => {
+        switch (this.sortBy) {
+          case 'price_asc':
+            return a.price - b.price
+          case 'price_desc':
+            return b.price - a.price
+          case 'name_asc':
+            return a.title.localeCompare(b.title)
+          case 'name_desc':
+            return b.title.localeCompare(a.title)
+          default:
+            return 0
+        }
+      })
+
+      return filtered
     }
   },
 
@@ -165,6 +258,19 @@ export default {
   },
 
   methods: {
+    truncatedDescription(description) {
+      const words = description.split(' ');
+      if (words.length > 10) {
+        return words.slice(0, 10).join(' ') + '...';
+      }
+      return description;
+    },
+
+    getCategoryName(categoryId) {
+      const category = this.categories.find(cat => cat.id === categoryId);
+      return category ? category.name : categoryId;
+    },
+
     async fetchServices() {
       try {
         const { data, error } = await supabase
@@ -186,7 +292,7 @@ export default {
         title: service.title,
         description: service.description,
         price: service.price,
-        type: service.category,
+        category: service.category,
         image: service.image,
         features: service.features || [],
         requirements: service.requirements || [],
@@ -202,7 +308,7 @@ export default {
         title: '',
         description: '',
         price: 0,
-        type: 'moving',
+        category: 'loaders',
         image: null,
         features: [],
         requirements: [],
@@ -264,7 +370,7 @@ export default {
           title: this.formData.title,
           description: this.formData.description,
           price: this.formData.price,
-          category: this.formData.type,
+          category: this.formData.category,
           image: this.formData.image,
           features: this.formData.features || [],
           requirements: this.formData.requirements || [],
@@ -295,8 +401,8 @@ export default {
       }
     },
 
-    confirmDelete(serviceId) {
-      this.serviceToDelete = serviceId
+    confirmDelete(service) {
+      this.serviceToDelete = service
     },
 
     async deleteService() {
@@ -337,6 +443,7 @@ export default {
 <style scoped>
 .services-manager {
   color: #ffffff;
+  padding: 2rem;
 }
 
 .services-header {
@@ -361,6 +468,91 @@ export default {
 
 .add-btn:hover {
   background: #1ed760;
+}
+
+/* Добавленные стили фильтрации (по аналогии с каталогом) */
+.filters-container {
+  margin-bottom: 2rem;
+  background: #121212;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.filters-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.search-container {
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 1rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 50px;
+  background: #282828;
+  color: #ffffff;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.categories {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.category-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 50px;
+  background: #282828;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.category-button:hover {
+  background: #404040;
+}
+
+.category-button.active {
+  background: #1db954;
+  color: white;
+}
+
+.sort-controls {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.sort-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 50px;
+  background: #282828;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.sort-button:hover {
+  background: #404040;
+}
+
+.sort-button.active {
+  background: #1db954;
+  color: white;
 }
 
 .services-grid {
@@ -632,6 +824,16 @@ export default {
 
   .services-grid {
     grid-template-columns: 1fr;
+  }
+
+  .category-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .sort-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
   }
 }
 </style>

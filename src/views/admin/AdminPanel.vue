@@ -105,17 +105,17 @@ export default {
 
 @media (max-width: 768px) {
   .admin-panel {
-    padding: 1rem;
+  padding: 1rem;
   }
 
   .tabs {
     flex-wrap: wrap;
-    gap: 0.5rem;
-  }
+  gap: 0.5rem;
+}
 
   .tab-button {
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-  }
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
 }
 </style>

@@ -153,18 +153,18 @@
               </div>
               <div class="detail-row" v-if="selectedOrder.discount > 0">
                 <span class="label">Сумма без скидки:</span>
-                <span>{{ selectedOrder.original_price }} ₽</span>
+                <span>{{ selectedOrder.original_price }} руб</span>
               </div>
               <div class="detail-row" v-if="selectedOrder.promo_code">
                 <span class="label">Промокод:</span>
                 <span class="promo-info">
                   {{ selectedOrder.promo_code }}
-                  <span class="discount-badge">-{{ selectedOrder.discount }} ₽</span>
+                  <span class="discount-badge">-{{ selectedOrder.discount }} руб</span>
                 </span>
               </div>
               <div class="detail-row">
                 <span class="label">Итоговая сумма:</span>
-                <span class="total-price">{{ selectedOrder.total_price }} ₽</span>
+                <span class="total-price">{{ selectedOrder.total_price }} руб</span>
               </div>
             </div>
 

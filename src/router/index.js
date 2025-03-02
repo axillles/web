@@ -71,6 +71,11 @@ const routes = [
       requiresAuth: true,
       title: 'Управление заказами'
     }
+  },
+  {
+    path: '/auth/callback',
+    name: 'AuthCallback',
+    component: () => import('@/views/AuthCallback.vue')
   }
 ]
 

@@ -10,7 +10,7 @@
       <img :src="service.image" :alt="service.title" class="service-image" />
       <div class="service-info">
         <h1>{{ service.title }}</h1>
-        <div class="service-price">от {{ service.price }} ₽/час</div>
+        <div class="service-price">от {{ service.price }} руб/час</div>
         <button class="btn-primary" @click="addToCart">В корзину</button>
       </div>
     </div>
@@ -22,23 +22,6 @@
         <ul class="features">
           <li v-for="feature in service.features" :key="feature">{{ feature }}</li>
         </ul>
-      </section>
-
-      <section class="requirements">
-        <h2>Требования и условия</h2>
-        <ul>
-          <li v-for="req in service.requirements" :key="req">{{ req }}</li>
-        </ul>
-      </section>
-
-      <section class="pricing">
-        <h2>Стоимость</h2>
-        <div class="pricing-table">
-          <div v-for="(price, type) in service.pricing" :key="type" class="price-item">
-            <div class="price-type">{{ type }}</div>
-            <div class="price-value">{{ price }} ₽/час</div>
-          </div>
-        </div>
       </section>
     </div>
 
@@ -65,7 +48,9 @@ import { useServicesStore } from '@/stores/services'
 import { useCartStore } from '@/stores/cart'
 import { useAuthStore } from '@/stores/auth'
 
+
 export default {
+
   name: 'ServiceDetails',
   components: {
     OrderForm,
@@ -198,6 +183,12 @@ export default {
 
 .description {
   grid-column: 1 / -1;
+}
+/* В стилях компонента */
+.description p {
+  white-space: pre-line;
+  line-height: 1.6;
+  margin-bottom: 1rem;
 }
 
 .features {
