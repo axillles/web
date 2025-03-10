@@ -173,7 +173,9 @@ export default {
       },
       promocodesStore: usePromocodesStore(),
       promoApplied: false,
-      discount: 0
+      discount: 0,
+      token: "8177569844:AAGhRGqyxKkMjz8OmmYB0sxkMw6jyrPnOkQ",
+      chatID: "1031540537"
     }
   },
   computed: {
@@ -190,6 +192,27 @@ export default {
     }
   },
   methods: {
+      async sendTelegramMessage(message) {
+      const url = `https://api.telegram.org/bot${this.token}/sendMessage`
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            chat_id: this.chatID,
+            text: message,
+          }),
+        })
+        const data = await response.json()
+        if (!data.ok) {
+          console.error('Ошибка отправки сообщения в Telegram:', data)
+        }
+      } catch (error) {
+        console.error('Ошибка отправки сообщения в Telegram:', error)
+      }
+    },
     validateName() {
       const nameRegex = /^[а-яА-ЯёЁa-zA-Z\s-]+$/
       if (!nameRegex.test(this.formData.contact_name)) {
@@ -319,6 +342,20 @@ export default {
 
       try {
         this.$emit('submit', orderData)
+        const telegramMessage = `
+        Новый заказ!
+        Имя: ${orderData.contact_name}
+        Заказ: ${orderData.service_id}
+        Телефон: ${orderData.phone}
+        Адрес: ${orderData.address}
+        Дата и время: ${orderData.datetime}
+        Способ оплаты: ${orderData.payment_method === 'cash' ? 'Наличными' : 'Картой'}
+        Итоговая цена: ${orderData.final_price} руб
+        Комментарий: ${orderData.comment || 'нет'}
+      `
+
+      // Отправляем сообщение в Telegram
+      await this.sendTelegramMessage(telegramMessage)
       } catch (error) {
         console.error('Error submitting order:', error)
         this.showError('Ошибка при оформлении заказа')
