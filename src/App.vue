@@ -20,6 +20,7 @@
       </div>
 
       <div class="auth-buttons">
+        <ThemeToggle />
         <template v-if="authStore.isAuthenticated">
           <router-link v-if="authStore.isAdmin" to="/admin" class="admin-link">
             Админ-панель
@@ -47,68 +48,97 @@
 
 <script>
 import AppFooter from '@/components/AppFooter.vue'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 import ToastNotification from '@/components/ToastNotification.vue'
 import AuthModal from '@/components/AuthModal.vue'
 import CookieConsent from '@/components/CookieConsent.vue'
+import { useTheme } from '@/composables/useTheme'
 import { useAuthStore } from '@/stores/auth'
+import { onMounted, ref, provide } from 'vue'
 
 export default {
   name: 'App',
   components: {
     AppFooter,
+    ThemeToggle,
     ToastNotification,
     AuthModal,
-    CookieConsent,
+    CookieConsent
   },
-  async created() {
-    try {
-      await this.authStore.checkAuth()
-    } catch (error) {
-      console.error('Auth check error:', error)
-      this.showToast('Ошибка при проверке авторизации', 'error')
-    }
-  },
-  data() {
-    return {
-      showAuthModal: false,
-      authStore: useAuthStore(),
-    }
-  },
-  computed: {
-    userName() {
-      return this.authStore.user?.name || ''
-    },
-  },
-  provide() {
-    return {
-      showToast: this.showToast,
-    }
-  },
-  methods: {
-    showToast(message, type) {
-      this.$refs.toast.showToast(message, type)
-    },
-    handleModalClose() {
-      this.showAuthModal = false
-    },
-    handleAuthSuccess() {
-      this.showAuthModal = false
-      this.$router.go()
-    },
-    handleLogout() {
-      this.authStore.logout()
-      this.showToast('Вы успешно вышли из системы', 'info')
-      this.$router.push('/')
-    },
-    handleCookieConsent(settings) {
-      if (settings.analytics) {
-        // Инициализация аналитики
+  setup() {
+    const { currentTheme, toggleTheme } = useTheme()
+    const authStore = useAuthStore()
+    const showAuth = ref(false)
+    const isAuthenticating = ref(false)
+    const toastRef = ref(null)
+    const isNavOpen = ref(false)
+
+    // Предоставляем метод для дочерних компонентов
+    provide('showToast', (message, type = 'info') => {
+      if (toastRef.value) {
+        toastRef.value.showToast(message, type)
       }
-      if (settings.marketing) {
-        // Инициализация маркетинговых инструментов
+    })
+
+    onMounted(async () => {
+      // Проверяем аутентификацию при загрузке
+      try {
+        isAuthenticating.value = true
+        await authStore.checkAuth()
+      } catch (error) {
+        console.error('Auth check error:', error)
+      } finally {
+        isAuthenticating.value = false
       }
-    },
-  },
+    })
+
+    const handleShowAuth = () => {
+      showAuth.value = true
+    }
+
+    const handleCloseAuth = () => {
+      showAuth.value = false
+    }
+
+    const handleAuthSuccess = () => {
+      showAuth.value = false
+      if (toastRef.value) {
+        toastRef.value.showToast('Вы успешно вошли!', 'success')
+      }
+    }
+
+    const handleLogout = async () => {
+      try {
+        await authStore.logout()
+        if (toastRef.value) {
+          toastRef.value.showToast('Вы вышли из аккаунта', 'info')
+        }
+      } catch (error) {
+        if (toastRef.value) {
+          toastRef.value.showToast(error.message || 'Ошибка при выходе', 'error')
+        }
+      }
+    }
+
+    const toggleNav = () => {
+      isNavOpen.value = !isNavOpen.value
+    }
+
+    return {
+      currentTheme,
+      toggleTheme,
+      showAuth,
+      handleShowAuth,
+      handleCloseAuth,
+      handleAuthSuccess,
+      isAuthenticating,
+      toastRef,
+      authStore,
+      handleLogout,
+      isNavOpen,
+      toggleNav
+    }
+  }
 }
 </script>
 
@@ -123,8 +153,6 @@ export default {
 body {
   font-family: Arial, sans-serif;
   line-height: 1.6;
-  color: #ffffff;
-  background: #121212;
 }
 
 /* Стили навигации */
@@ -133,8 +161,7 @@ body {
   align-items: center;
   gap: 2rem;
   padding: 1rem;
-  background: #000000;
-  box-shadow: 0 1px 3px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   position: relative;
   z-index: 100;
 }
@@ -143,7 +170,7 @@ body {
   font-size: 1.5rem;
   font-weight: bold;
   margin-right: 2rem;
-  color: #1db954;
+  color: var(--accent-primary);
 }
 
 .navbar a {
@@ -151,19 +178,19 @@ body {
   margin-right: 1rem;
   padding: 0.5rem 1rem;
   text-decoration: none;
-  color: #b3b3b3;
+  color: var(--text-secondary);
   border-radius: 4px;
   transition: all 0.3s ease;
 }
 
 .navbar a:hover {
-  color: #ffffff;
-  background: #282828;
+  color: var(--text-primary);
+  background: var(--bg-elevated);
 }
 
 .navbar a.router-link-active {
-  color: #ffffff;
-  background: #282828;
+  color: var(--text-primary);
+  background: var(--bg-elevated);
   font-weight: 500;
 }
 
@@ -185,21 +212,23 @@ p {
 .contact-info {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-left: 2rem;
-  margin-right: auto;
+  gap: 0.5rem;
+  margin-left: auto;
+  margin-right: 1rem;
+  white-space: nowrap;
 }
 
 .phone-number {
-  color: #ffffff;
+  color: var(--text-primary);
   text-decoration: none;
   font-weight: 500;
-  font-size: 1.1rem;
+  font-size: 1rem;
   transition: color 0.3s ease;
+  white-space: nowrap;
 }
 
 .phone-number:hover {
-  color: #1db954;
+  color: var(--accent-primary);
 }
 
 .messenger-links {
@@ -218,10 +247,9 @@ p {
 }
 
 .auth-buttons {
-  margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .btn-login,
@@ -235,55 +263,55 @@ p {
 }
 
 .btn-login {
-  background: #1db954;
+  background: var(--accent-primary);
   color: white;
   cursor: pointer;
   position: relative;
 }
 
 .btn-login:hover {
-  background: #1ed760;
+  background: var(--accent-secondary);
 }
 
 .btn-logout {
-  background: #282828;
-  color: white;
-  cursor: pointer;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
 }
 
 .profile-button {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #282828;
-  color: #333;
-  text-decoration: none;
-  margin-right: 1rem;
-  border: 2px solid #404040;
-  overflow: hidden;
+  background: none;
+  border: none;
+  cursor: pointer;
 }
 
 .profile-avatar {
-  width: 100%;
-  height: 100%;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   object-fit: cover;
+  transition: all 0.3s ease;
+}
+
+.profile-avatar:hover {
+  transform: scale(1.1);
 }
 
 .admin-link {
-  padding: 0.5rem 1rem;
-  background: #282828;
-  color: white;
-  text-decoration: none;
+  padding: 0.4rem 0.8rem;
+  background: var(--bg-elevated);
+  color: var(--accent-primary) !important;
   border-radius: 4px;
-  margin-right: 1rem;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: all 0.3s ease;
 }
 
 .admin-link:hover {
-  background: #404040;
+  background: var(--accent-primary);
+  color: white !important;
 }
 
 /* Стили для кнопок карусели */
@@ -331,17 +359,61 @@ p {
   .navbar {
     flex-wrap: wrap;
     justify-content: center;
-    gap: 1rem;
+    gap: 0.75rem;
+    padding: 0.75rem 0.5rem;
+  }
+
+  .logo {
+    margin-right: 1rem;
+  }
+
+  .navbar a {
+    margin-right: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.9rem;
   }
 
   .contact-info {
-    margin: 0;
+    margin: 0.5rem auto;
     order: 2;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .phone-number {
+    font-size: 0.9rem;
   }
 
   .auth-buttons {
     order: 3;
-    margin-left: 0;
+    margin: 0 auto;
+  }
+
+  .admin-link {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .btn-login {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar {
+    padding: 0.5rem 0.25rem;
+    gap: 0.5rem;
+  }
+
+  .logo {
+    font-size: 1.2rem;
+    margin-right: 0.5rem;
+  }
+
+  .navbar a {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.5rem;
   }
 }
 </style>

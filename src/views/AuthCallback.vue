@@ -33,6 +33,6 @@ export default {
 }
 
 .loader {
-  color: #ffffff;
+  color: var(--text-primary);
 }
 </style>

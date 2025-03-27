@@ -115,24 +115,24 @@ export default {
 <style scoped>
 .about {
   padding: 2rem;
-  background: #121212;
+  background: var(--bg-primary);
   min-height: 100vh;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 .hero-section {
   text-align: center;
   padding: 4rem 2rem;
-  background: #000000;
+  background: var(--navbar-bg);
   margin-bottom: 3rem;
 }
 .hero-section h1 {
   font-size: 3rem;
   margin-bottom: 1rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 .hero-section p {
   font-size: 1.2rem;
-  color: #b3b3b3;
+  color: var(--text-secondary);
   max-width: 800px;
   margin: 0 auto;
 }
@@ -140,7 +140,7 @@ export default {
   max-width: 1200px;
   margin: 0 auto;
   padding: 3rem 2rem;
-  background: #181818;
+  background: var(--bg-secondary);
   border-radius: 8px;
   margin-bottom: 2rem;
 }
@@ -148,10 +148,10 @@ export default {
   font-size: 2rem;
   margin-bottom: 2rem;
   text-align: center;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 .content-section p {
-  color: #b3b3b3;
+  color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: 1.5rem;
 }
@@ -186,23 +186,23 @@ export default {
 }
 .contact-item {
   padding: 2rem;
-  background: #282828;
+  background: var(--bg-secondary);
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
+  box-shadow: var(--card-shadow);
+  transition: var(--transition-standard);
 }
 .contact-item:hover {
   transform: translateY(-5px);
-  background: #404040;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  background: var(--bg-elevated);
+  box-shadow: var(--card-hover-shadow);
 }
 .contact-item i {
   font-size: 2rem;
-  color: #1db954;
+  color: var(--accent-primary);
   margin-right: 1rem;
 }
 .contact-item p {
-  color: #b3b3b3;
+  color: var(--text-secondary);
 }
 
 /* Responsive Design */

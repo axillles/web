@@ -215,59 +215,65 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 .profile {
   padding: 2rem;
-  min-height: calc(100vh - 64px);
-  color: #ffffff;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .profile-container {
-  max-width: 1200px;
-  margin: 0 auto;
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: 250px 1fr;
   gap: 2rem;
+  margin-top: 1rem;
 }
 
 .profile-sidebar {
-  background: #282828;
-  border-radius: 8px;
+  background-color: var(--bg-secondary);
+  border-radius: var(--border-radius);
+  box-shadow: var(--card-shadow);
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .user-info {
-  padding: 2rem;
+  padding: 2rem 1rem;
   text-align: center;
-  border-bottom: 1px solid #404040;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .avatar {
   width: 120px;
   height: 120px;
-  margin: 0 auto 1.5rem;
-  background: #404040;
+  background: var(--bg-elevated);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .avatar i {
   font-size: 3rem;
-  color: #1db954;
+  color: var(--accent-primary);
 }
 
 .username {
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
-  color: #ffffff;
+  color: var(--text-primary);
   word-wrap: break-word;
 }
 
 .email {
-  color: #b3b3b3;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   word-wrap: break-word;
   padding: 0 1rem;
@@ -283,28 +289,28 @@ export default {
   text-align: left;
   background: none;
   border: none;
-  color: #b3b3b3;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.3s ease;
   border-left: 3px solid transparent;
 }
 
 .profile-nav button:hover {
-  background: #323232;
-  color: #ffffff;
+  background: var(--bg-secondary-hover);
+  color: var(--text-primary);
 }
 
 .profile-nav button.active {
-  background: #323232;
-  color: #1db954;
-  border-left-color: #1db954;
+  background: var(--bg-secondary-hover);
+  color: var(--accent-primary);
+  border-left-color: var(--accent-primary);
 }
 
 .logout-button {
   width: 100%;
   padding: 1rem;
-  background: #e91429;
-  color: #ffffff;
+  background: var(--error-color);
+  color: white;
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -312,15 +318,15 @@ export default {
 }
 
 .logout-button:hover {
-  background: #ff1430;
+  background: var(--error-color-hover);
 }
 
 .profile-content {
-  background: #282828;
-  border-radius: 8px;
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius);
   padding: 2rem;
   min-height: 500px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--card-shadow);
 }
 
 /* Адаптивность */
@@ -348,7 +354,7 @@ export default {
 
   .profile-nav button.active {
     border-left: none;
-    border-bottom-color: #1db954;
+    border-bottom-color: var(--accent-primary);
   }
 }
 
@@ -368,12 +374,12 @@ export default {
 }
 
 .tab-content {
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .tab-content h2 {
   margin-bottom: 2rem;
-  color: #1db954;
+  color: var(--accent-primary);
 }
 
 .profile-form {
@@ -387,22 +393,23 @@ export default {
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .form-group input {
   width: 100%;
   padding: 0.75rem;
-  background: #404040;
-  border: 1px solid #404040;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: #ffffff;
+  color: var(--text-primary);
   transition: border-color 0.3s ease;
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: #1db954;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(29, 185, 84, 0.25);
 }
 
 .form-group input:disabled {
@@ -411,28 +418,32 @@ export default {
 }
 
 .btn-save {
-  background: #1db954;
+  background: var(--accent-primary);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .btn-save:hover {
-  background: #1ed760;
+  background: var(--accent-secondary);
   transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .btn-save:disabled {
-  background: #404040;
+  background: var(--bg-elevated);
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
 }
 
 .btn-save:disabled:hover {
-  background: #404040;
+  background: var(--bg-elevated);
   transform: none;
+  box-shadow: none;
 }
 </style>

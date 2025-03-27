@@ -87,16 +87,16 @@ export default {
 .service-card {
   position: relative;
   padding: 2rem;
-  background: #282828;
+  background: var(--bg-secondary);
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
+  box-shadow: var(--card-shadow);
+  transition: var(--transition-standard);
 }
 
 .service-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-  background: #404040;
+  box-shadow: var(--card-hover-shadow);
+  background: var(--bg-elevated);
 }
 
 .service-image {
@@ -117,11 +117,11 @@ export default {
   font-size: 1.5rem;
   font-weight: bold;
   margin-bottom: 1rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .service-description {
-  color: #b3b3b3;
+  color: var(--text-secondary);
   margin-bottom: 1.5rem;
   line-height: 1.6;
 }
@@ -129,7 +129,7 @@ export default {
 .service-price {
   font-size: 1.25rem;
   font-weight: bold;
-  color: #1db954;
+  color: var(--accent-primary);
   margin-bottom: 1.5rem;
 }
 
@@ -146,27 +146,28 @@ export default {
   border-radius: 50px;
   cursor: pointer;
   font-weight: 500;
-  transition: all 0.3s ease;
+  transition: var(--transition-standard);
   text-align: center;
   text-decoration: none;
 }
 
 .btn-add-to-cart {
-  background: #1db954;
+  background: var(--accent-primary);
   color: white;
 }
 
 .btn-add-to-cart:hover {
-  background: #1ed760;
+  background: var(--accent-secondary);
 }
 
 .btn-details {
-  background: #404040;
-  color: #ffffff;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
 }
 
 .btn-details:hover {
-  background: #505050;
+  background: var(--bg-elevated);
+  opacity: 0.9;
 }
 
 .modal {
@@ -190,12 +191,12 @@ export default {
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: #b3b3b3;
+  color: var(--text-secondary);
   transition: color 0.3s ease;
   z-index: 1001;
 }
 
 .close-button:hover {
-  color: #ffffff;
+  color: var(--text-primary);
 }
 </style>

@@ -60,21 +60,26 @@ export default {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
+  color: var(--text-primary);
 }
 
 .admin-header {
   margin-bottom: 2rem;
+  background-color: var(--bg-secondary);
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--card-shadow);
 }
 
 .admin-header h1 {
-  color: #ffffff;
+  color: var(--text-primary);
   margin-bottom: 1.5rem;
 }
 
 .tabs {
   display: flex;
   gap: 1rem;
-  border-bottom: 1px solid #404040;
+  border-bottom: 1px solid var(--border-color);
   padding-bottom: 1px;
 }
 
@@ -82,7 +87,7 @@ export default {
   padding: 0.75rem 1.5rem;
   background: none;
   border: none;
-  color: #b3b3b3;
+  color: var(--text-secondary);
   cursor: pointer;
   font-size: 1rem;
   transition: all 0.3s ease;
@@ -91,31 +96,39 @@ export default {
 }
 
 .tab-button:hover {
-  color: #ffffff;
+  color: var(--text-primary);
+  background-color: var(--bg-secondary-hover);
+  border-radius: 4px 4px 0 0;
 }
 
 .tab-button.active {
-  color: #1db954;
-  border-bottom-color: #1db954;
+  color: var(--accent-primary);
+  border-bottom-color: var(--accent-primary);
+  background-color: var(--bg-secondary-hover);
+  border-radius: 4px 4px 0 0;
 }
 
 .tab-content {
   margin-top: 2rem;
+  background-color: var(--bg-secondary);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  box-shadow: var(--card-shadow);
 }
 
 @media (max-width: 768px) {
   .admin-panel {
-  padding: 1rem;
+    padding: 1rem;
   }
 
   .tabs {
     flex-wrap: wrap;
-  gap: 0.5rem;
-}
+    gap: 0.5rem;
+  }
 
   .tab-button {
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
-}
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
 }
 </style>

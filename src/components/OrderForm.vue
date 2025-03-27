@@ -136,6 +136,8 @@
 <script>
 import { useAuthStore } from '@/stores/auth'
 import { usePromocodesStore } from '@/stores/promocodes'
+import { useTelegramService } from '@/composables/useTelegramService'
+import { useCartStore } from '@/stores/cart'
 
 export default {
   name: 'OrderForm',
@@ -148,6 +150,11 @@ export default {
       type: Number,
       required: true
     }
+  },
+  setup() {
+    // Используем сервис для работы с Telegram уведомлениями
+    const telegramService = useTelegramService();
+    return { telegramService };
   },
   data() {
     const authStore = useAuthStore()
@@ -173,9 +180,7 @@ export default {
       },
       promocodesStore: usePromocodesStore(),
       promoApplied: false,
-      discount: 0,
-      token: "8177569844:AAGhRGqyxKkMjz8OmmYB0sxkMw6jyrPnOkQ",
-      chatID: "1031540537"
+      discount: 0
     }
   },
   computed: {
@@ -192,25 +197,17 @@ export default {
     }
   },
   methods: {
-      async sendTelegramMessage(message) {
-      const url = `https://api.telegram.org/bot${this.token}/sendMessage`
+    async sendTelegramMessage(message) {
       try {
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            chat_id: this.chatID,
-            text: message,
-          }),
-        })
-        const data = await response.json()
-        if (!data.ok) {
-          console.error('Ошибка отправки сообщения в Telegram:', data)
-        }
+        console.log('Отправка уведомления в Telegram...');
+        await this.telegramService.sendMessage(message);
+        console.log('Уведомление успешно отправлено');
+        return true;
       } catch (error) {
-        console.error('Ошибка отправки сообщения в Telegram:', error)
+        console.error('Ошибка отправки сообщения в Telegram:', error);
+        // При ошибке отправки в Telegram не блокируем процесс оформления заказа
+        // Просто логируем ошибку и продолжаем
+        return false;
       }
     },
     validateName() {
@@ -324,79 +321,142 @@ export default {
         return
       }
 
-      this.isSubmitting = true
-
-      const orderData = {
-        contact_name: this.formData.contact_name.trim(),
-        phone: this.formData.phone,
-        address: this.formData.address.trim(),
-        datetime: this.formData.datetime,
-        payment_method: this.formData.payment_method,
-        promo_code: this.promoApplied ? this.formData.promo_code : null,
-        service_id: this.serviceId,
-        service_price: this.servicePrice,
-        final_price: this.finalPrice,
-        discount: this.discount,
-        comment: this.formData.comment || null
-      }
-
       try {
-        this.$emit('submit', orderData)
-        const telegramMessage = `
-        Новый заказ!
-        Имя: ${orderData.contact_name}
-        Заказ: ${orderData.service_id}
-        Телефон: ${orderData.phone}
-        Адрес: ${orderData.address}
-        Дата и время: ${orderData.datetime}
-        Способ оплаты: ${orderData.payment_method === 'cash' ? 'Наличными' : 'Картой'}
-        Итоговая цена: ${orderData.final_price} руб
-        Комментарий: ${orderData.comment || 'нет'}
-      `
+        this.isSubmitting = true;
 
-      // Отправляем сообщение в Telegram
-      await this.sendTelegramMessage(telegramMessage)
+        // Формируем данные заказа для отправки в API
+        const orderData = {
+          contact_name: this.formData.contact_name.trim(),
+          phone: this.formData.phone,
+          address: this.formData.address.trim(),
+          datetime: this.formData.datetime,
+          payment_method: this.formData.payment_method,
+          promo_code: this.promoApplied ? this.formData.promo_code : null,
+          service_id: this.serviceId,
+          service_price: this.servicePrice,
+          final_price: this.finalPrice,
+          discount: this.discount,
+          comment: this.formData.comment || null
+        };
+
+        // Проверяем, не оформляется ли заказ из корзины
+        const isFromCart = this.$route.path.includes('/cart');
+
+        // Если заказ не из корзины, формируем Telegram уведомление
+        if (!isFromCart) {
+          let serviceInfo = '';
+          let serviceType = '';
+          let cartStore = null;
+
+          // Определяем тип заказа и формируем информацию
+          // Одиночная услуга
+          switch (this.serviceId) {
+            case 1:
+              serviceType = 'Квартирный переезд';
+              break;
+            case 2:
+              serviceType = 'Офисный переезд';
+              break;
+            case 3:
+              serviceType = 'Погрузка/разгрузка';
+              break;
+            case 4:
+              serviceType = 'Подъем на этаж';
+              break;
+            default:
+              serviceType = `Услуга #${this.serviceId}`;
+          }
+
+          serviceInfo = `\n\n📋 Детали услуги:`;
+          const params = [];
+          if (this.serviceId === 1 || this.serviceId === 2) {
+            params.push('Включает транспорт и грузчиков');
+          }
+          if (params.length > 0) {
+            serviceInfo += `\n${params.join('\n')}`;
+          }
+
+          // Форматируем дату и время
+          const dateTime = new Date(this.formData.datetime);
+          const formattedDate = dateTime.toLocaleDateString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          });
+          const formattedTime = dateTime.toLocaleTimeString('ru-RU', {
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+
+          // Форматируем способ оплаты
+          const paymentMethod = this.formData.payment_method === 'cash' ? 'Наличными' : 'Картой';
+
+          // Формируем сообщение Telegram с эмодзи и форматированием
+          const telegramMessage = `
+🔔 Новый заказ!
+
+👤 Клиент: ${this.formData.contact_name}
+📞 Телефон: ${this.formData.phone}
+🏠 Адрес: ${this.formData.address}
+🕒 Дата и время: ${formattedDate} в ${formattedTime}
+💵 Способ оплаты: ${paymentMethod}
+
+🛒 Тип заказа: ${serviceType}${serviceInfo}
+
+${this.promoApplied ? `🎁 Промокод: ${this.formData.promo_code}\n🔽 Скидка: ${this.discount} руб\n🏷️ Цена без скидки: ${this.servicePrice} руб\n` : ''}
+💰 Итоговая цена: ${this.finalPrice} руб
+
+${this.formData.comment ? `💬 Комментарий:\n${this.formData.comment}` : ''}
+          `;
+
+          // Пытаемся отправить сообщение в Telegram, но продолжаем процесс оформления
+          // даже если возникла ошибка с Telegram
+          try {
+            await this.sendTelegramMessage(telegramMessage);
+          } catch (telegramError) {
+            console.error('Не удалось отправить уведомление, но заказ будет оформлен', telegramError);
+          }
+        }
+
+        // Отправляем заказ в систему
+        // TODO: Заменить на реальный код сохранения заказа
+        console.log('Отправка заказа:', orderData);
+
+        // Очищаем корзину если заказ из корзины
+        if (isFromCart) {
+          const cartStore = useCartStore();
+          if (cartStore) {
+            cartStore.clearCart();
+            console.log('Корзина очищена после оформления заказа');
+          }
+        }
+
+        // Сообщаем об успешном оформлении заказа
+        this.$emit('submit', orderData);
+
+        // Переходим на страницу успешного оформления
+        this.$router.push('/order-success');
       } catch (error) {
-        console.error('Error submitting order:', error)
-        this.showError('Ошибка при оформлении заказа')
+        console.error('Ошибка оформления заказа:', error);
+        this.error = 'Произошла ошибка при оформлении заказа. Пожалуйста, попробуйте позже.';
       } finally {
-        this.isSubmitting = false
+        this.isSubmitting = false;
       }
     }
   }
 }
 </script>
 
-<style scoped>
+<style>
 .order-form {
-  max-width: 500px;
-  margin: 0 auto;
-  background: #2a2a2a;
-  padding: 1.5rem;
-  border-radius: 8px;
-  max-height: calc(90vh - 4rem); /* Высота с учетом отступов */
-  overflow-y: auto; /* Добавляем прокрутку */
-}
-
-/* Стилизуем скроллбар */
-.order-form::-webkit-scrollbar {
-  width: 8px;
-}
-
-.order-form::-webkit-scrollbar-track {
-  background: #2a2a2a;
-}
-
-.order-form::-webkit-scrollbar-thumb {
-  background: #404040;
-  border-radius: 4px;
-}
-
-.order-form::-webkit-scrollbar-thumb:hover {
-  background: #505050;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1rem;
+  width: 100%;
 }
 
 h3 {
+  color: var(--text-primary);
   margin-top: 0;
   margin-bottom: 1rem; /* Уменьшаем отступ */
   text-align: center;
@@ -410,15 +470,16 @@ h3 {
   display: block;
   margin-bottom: 0.25rem; /* Уменьшаем отступ */
   font-size: 0.9rem; /* Уменьшаем размер шрифта */
+  color: var(--text-primary);
 }
 
 .form-control {
   width: 100%;
   padding: 0.5rem 0.75rem; /* Уменьшаем padding */
-  background: #404040;
-  border: 1px solid #404040;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 textarea.form-control {
@@ -428,12 +489,17 @@ textarea.form-control {
 
 .btn-primary {
   width: 100%;
-  background: #1db954;
+  background: var(--accent-primary);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: 4px;
   cursor: pointer;
+  transition: var(--transition-standard);
+}
+
+.btn-primary:hover {
+  background: var(--accent-secondary);
 }
 
 .btn-primary:disabled {
@@ -444,11 +510,12 @@ textarea.form-control {
 small {
   font-size: 0.8rem; /* Уменьшаем размер шрифта */
   margin-top: 0.25rem;
+  color: var(--text-secondary);
 }
 
 select {
   appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: right 1rem center;
   background-size: 1em;
@@ -463,29 +530,29 @@ select {
 .payment-button {
   flex: 1;
   padding: 0.5rem 1rem; /* Уменьшаем padding */
-  border: 2px solid #404040;
+  border: 2px solid var(--border-color);
   border-radius: 4px;
-  background: #282828;
-  color: #ffffff;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition-standard);
   font-size: 0.9rem; /* Уменьшаем размер шрифта */
 }
 
 .payment-button:hover {
-  background: #404040;
-  border-color: #1db954;
+  background: var(--bg-elevated);
+  border-color: var(--accent-primary);
 }
 
 .payment-button.active {
-  background: #1db954;
-  border-color: #1db954;
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
   color: white;
 }
 
 .error-message {
   display: block;
-  color: #ff4444;
+  color: var(--error-color);
   margin-top: 0.5rem;
   font-size: 0.875rem;
 }
@@ -497,16 +564,20 @@ select {
 
 .btn-apply-promo {
   padding: 0.75rem 1rem;
-  background: #1db954;
+  background: var(--accent-primary);
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition-standard);
+}
+
+.btn-apply-promo:hover {
+  background: var(--accent-secondary);
 }
 
 .btn-apply-promo:disabled {
-  background: #404040;
+  background: var(--bg-elevated);
   cursor: not-allowed;
 }
 
@@ -515,13 +586,13 @@ select {
   align-items: center;
   gap: 0.5rem;
   margin-top: 0.5rem;
-  color: #1db954;
+  color: var(--accent-primary);
 }
 
 .btn-remove-promo {
   background: none;
   border: none;
-  color: #ff4444;
+  color: var(--error-color);
   cursor: pointer;
   font-size: 1.2rem;
   padding: 0;
@@ -532,12 +603,12 @@ select {
 }
 
 .original-price {
-  color: #b3b3b3;
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
 .final-price {
-  color: #1db954;
+  color: var(--accent-primary);
   font-size: 1.2rem;
   font-weight: bold;
 }
@@ -545,14 +616,39 @@ select {
 input[type="datetime-local"] {
   width: 100%;
   padding: 0.75rem;
-  background: #404040;
-  border: 1px solid #404040;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   filter: invert(1);
   cursor: pointer;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--modal-overlay);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: var(--bg-secondary);
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  position: relative;
+  width: 95%;
+  max-width: 550px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--card-shadow);
 }
 </style>

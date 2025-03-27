@@ -8,8 +8,8 @@
             <h3>{{ promotion.title }}</h3>
             <p>{{ promotion.description }}</p>
             <div class="promotion-price" v-if="promotion.price">
-              <span class="old-price">{{ promotion.oldPrice }} ₽</span>
-              <span class="new-price">{{ promotion.price }} ₽</span>
+              <span class="old-price">{{ promotion.oldPrice }} руб</span>
+              <span class="new-price">{{ promotion.price }} руб</span>
             </div>
             <router-link :to="promotion.link" class="btn-details">Подробнее</router-link>
           </div>
@@ -120,7 +120,7 @@ export default {
   height: 100%;
   display: flex;
   align-items: center;
-  background: #f8f9fa;
+  background: var(--bg-secondary);
 }
 
 .promotion-card img {
@@ -137,11 +137,11 @@ export default {
 .promotion-content h3 {
   font-size: 1.8rem;
   margin-bottom: 1rem;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .promotion-content p {
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 1.5rem;
 }
 
@@ -151,28 +151,28 @@ export default {
 
 .old-price {
   text-decoration: line-through;
-  color: #999;
+  color: var(--text-secondary);
   margin-right: 1rem;
 }
 
 .new-price {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #28a745;
+  color: var(--accent-primary);
 }
 
 .btn-details {
   display: inline-block;
   padding: 0.75rem 1.5rem;
-  background: #007bff;
+  background: var(--accent-primary);
   color: white;
   text-decoration: none;
   border-radius: 4px;
-  transition: background 0.3s ease;
+  transition: var(--transition-standard);
 }
 
 .btn-details:hover {
-  background: #0056b3;
+  background: var(--accent-secondary);
 }
 
 .slider-btn {
@@ -187,7 +187,7 @@ export default {
   border-radius: 50%;
   cursor: pointer;
   font-size: 1.2rem;
-  transition: background 0.3s ease;
+  transition: var(--transition-standard);
 }
 
 .slider-btn:disabled {
@@ -219,10 +219,11 @@ export default {
   background: rgba(255, 255, 255, 0.5);
   border: none;
   cursor: pointer;
+  transition: var(--transition-standard);
 }
 
 .dot.active {
-  background: white;
+  background: var(--accent-primary);
 }
 
 @media (max-width: 768px) {

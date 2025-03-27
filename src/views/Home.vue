@@ -33,25 +33,39 @@
     <section class="business-clients">
       <h2>Для юридических лиц</h2>
       <p>Особые условия для компаний и постоянных клиентов</p>
-      <button class="btn-primary" @click="showContactModal = true">Узнать больше</button>
+      <button class="business-button" @click="showContactModal = true">
+        <span class="button-icon">🏢</span>
+        <span>Специальные условия</span>
+      </button>
     </section>
 
     <!-- Модальное окно с контактной информацией -->
     <div v-if="showContactModal" class="modal">
-      <div class="modal-content">
+      <div class="modal-content business-modal">
         <button class="close-button" @click="showContactModal = false">×</button>
+        <h3 class="modal-title">Для юридических лиц</h3>
         <div class="contact-info">
-          <div class="phone-numbers">
-            <div class="phone-part">+375</div>
-            <div class="phone-part">33</div>
-            <div class="phone-part">605-</div>
-            <div class="phone-part">29-</div>
-            <div class="phone-part">84</div>
+          <div class="phone-container">
+            <p class="phone-label">Свяжитесь с нами по телефону:</p>
+            <div class="phone-numbers">
+              <span class="phone-part">+375</span>
+              <span class="phone-part accent">33 605-29-84</span>
+            </div>
           </div>
-          <p class="business-text">
-            Для юридических лиц цены обсуждаются индивидуально по телефону
-          </p>
-          <a :href="'tel:+375336052984'" class="call-button">Позвонить</a>
+          <div class="business-info">
+            <p class="business-text">
+              Для юридических лиц цены обсуждаются<br>
+              индивидуально по телефону.<br><br>
+              Мы предлагаем гибкие условия<br>
+              сотрудничества и специальные тарифы.
+            </p>
+          </div>
+          <div class="action-buttons">
+            <a href="tel:+375336052984" class="call-button">Позвонить</a>
+            <a href="mailto:nklsupabaseadm@gmail.com" class="email-button">
+              Отправить запрос
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -86,53 +100,53 @@ export default {
 <style scoped>
 .home {
   min-height: 100vh;
-  background: #121212;
-  color: #ffffff;
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .hero {
   text-align: center;
   padding: 4rem 2rem;
-  background: #000000;
+  background: var(--navbar-bg);
   margin-bottom: 3rem;
 }
 
 .hero h1 {
   font-size: 3rem;
   margin-bottom: 1rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .subtitle {
   font-size: 1.2rem;
-  color: #b3b3b3;
+  color: var(--text-secondary);
   margin-bottom: 2rem;
 }
 
 .cta-button {
   display: inline-block;
   padding: 1rem 2rem;
-  background: #1db954;
+  background: var(--accent-primary);
   color: white;
   text-decoration: none;
   border-radius: 50px;
   font-weight: bold;
-  transition: all 0.3s ease;
+  transition: var(--transition-standard);
 }
 
 .cta-button:hover {
-  background: #1ed760;
+  background: var(--accent-secondary);
 }
 
 .services {
   padding: 3rem 2rem;
-  background: #181818;
+  background: var(--bg-primary);
 }
 
 .services h2 {
   text-align: center;
   margin-bottom: 2rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .services-grid {
@@ -145,57 +159,70 @@ export default {
 
 .service-card {
   padding: 2rem;
-  background: #282828;
+  background: var(--bg-secondary);
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--card-shadow);
   text-align: center;
-  transition: transform 0.3s ease;
+  transition: var(--transition-standard);
 }
 
 .service-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-  background: #404040;
+  box-shadow: var(--card-hover-shadow);
+  background: var(--bg-elevated);
 }
 
 .service-card h3 {
-  color: #ffffff;
+  color: var(--text-primary);
   margin-bottom: 1rem;
 }
 
 .service-card p {
-  color: #b3b3b3;
+  color: var(--text-secondary);
 }
 
 .business-clients {
   text-align: center;
   padding: 3rem 2rem;
-  background: #181818;
+  background: var(--bg-primary);
 }
 
 .business-clients h2 {
   margin-bottom: 1rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .business-clients p {
-  color: #b3b3b3;
+  color: var(--text-secondary);
   margin-bottom: 2rem;
 }
 
-.btn-primary {
-  background: #1db954;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
+/* Улучшенная кнопка для юридических лиц */
+.business-button {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 2px solid var(--accent-primary);
+  padding: 0.9rem 1.8rem;
   border-radius: 50px;
   cursor: pointer;
   font-size: 1.1rem;
-  transition: background 0.3s ease;
+  font-weight: 500;
+  transition: var(--transition-standard);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  box-shadow: var(--card-shadow);
 }
 
-.btn-primary:hover {
-  background: #1ed760;
+.business-button:hover {
+  background: var(--accent-primary);
+  color: white;
+  transform: translateY(-3px);
+  box-shadow: var(--card-hover-shadow);
+}
+
+.button-icon {
+  font-size: 1.2rem;
 }
 
 .modal {
@@ -211,16 +238,30 @@ export default {
   z-index: 1000;
 }
 
+/* Улучшенное модальное окно */
 .modal-content {
-  background: #282828;
-  padding: 3rem 2rem 2rem;
+  background: var(--bg-secondary);
+  padding: 2.5rem 2rem 2rem;
   border-radius: 12px;
   position: relative;
-  width: 90%;
-  max-width: 400px;
+  width: 94%;
+  max-width: 550px;
   margin: 1rem;
+  box-shadow: var(--card-shadow);
+}
+
+.business-modal {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+}
+
+.modal-title {
+  color: var(--accent-primary);
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  width: 100%;
 }
 
 .close-button {
@@ -232,18 +273,18 @@ export default {
   font-size: 2rem;
   line-height: 1;
   cursor: pointer;
-  color: #b3b3b3;
+  color: var(--text-secondary);
   padding: 0.5rem;
   width: 40px;
   height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: var(--transition-standard);
 }
 
 .close-button:hover {
-  color: #ffffff;
+  color: var(--text-primary);
   transform: scale(1.1);
 }
 
@@ -251,8 +292,22 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2.5rem;
+  gap: 1.8rem;
   width: 100%;
+}
+
+.phone-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.phone-label {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin: 0;
 }
 
 .phone-numbers {
@@ -265,59 +320,109 @@ export default {
 }
 
 .phone-part {
-  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-size: 1.6rem;
   font-weight: bold;
-  color: #1db954;
+  color: var(--text-secondary);
 }
 
-.phone-part:first-child {
-  color: #b3b3b3;
+.phone-part.accent {
+  color: var(--accent-primary);
+}
+
+.business-info {
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1.5rem 0;
+  width: 100%;
+  margin: 0 auto;
 }
 
 .business-text {
-  color: #b3b3b3;
-  font-size: clamp(1rem, 3vw, 1.2rem);
+  color: var(--text-secondary);
+  font-size: 1.05rem;
   text-align: center;
-  line-height: 1.5;
+  line-height: 1.6;
   margin: 0;
   width: 100%;
-  max-width: 300px;
+  word-wrap: break-word;
+  hyphens: auto;
+  padding: 0 0.5rem;
 }
 
-.call-button {
-  background: #1db954;
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+}
+
+.call-button, .email-button {
+  flex: 1;
+  min-width: 140px;
+  background: var(--accent-primary);
   color: white;
   text-decoration: none;
-  padding: 1rem 3rem;
+  padding: 0.8rem 1rem;
   border-radius: 50px;
-  font-weight: bold;
-  font-size: clamp(1rem, 3vw, 1.2rem);
-  transition: all 0.3s ease;
-  width: 100%;
-  max-width: 200px;
+  font-weight: 500;
+  font-size: 1rem;
+  transition: var(--transition-standard);
   text-align: center;
+  white-space: nowrap;
+}
+
+.email-button {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
 }
 
 .call-button:hover {
-  background: #1ed760;
-  transform: scale(1.05);
+  background: var(--accent-secondary);
+  transform: translateY(-2px);
+}
+
+.email-button:hover {
+  background: var(--accent-primary);
+  color: white;
+  transform: translateY(-2px);
 }
 
 @media (max-width: 480px) {
   .modal-content {
-    padding: 3rem 1rem 1.5rem;
+    padding: 2.5rem 1.5rem 1.5rem;
+    width: 95%;
   }
 
   .phone-numbers {
     gap: 4px;
+  }
+
+  .phone-part {
+    font-size: 1.4rem;
+  }
+
+  .business-text {
+    font-size: 0.95rem;
+    padding: 0 0.5rem;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    width: 95%;
+  }
+
+  .call-button, .email-button {
+    width: 100%;
   }
 }
 
 .loader {
   width: 50px;
   height: 50px;
-  border: 5px solid #282828;
-  border-top: 5px solid #1db954;
+  border: 5px solid var(--bg-secondary);
+  border-top: 5px solid var(--accent-primary);
   border-radius: 50%;
   margin: 20px auto;
   animation: spin 1s linear infinite;

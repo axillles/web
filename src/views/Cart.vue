@@ -77,8 +77,8 @@ import { useCartStore } from '@/stores/cart'
 import { useOrdersStore } from '@/stores/orders'
 import OrderForm from '@/components/OrderForm.vue'
 import AnimatedPrice from '@/components/AnimatedPrice.vue'
-import { supabase } from '../lib/supabaseClient'
 import { useAuthStore } from '@/stores/auth'
+import { useTelegramService } from '@/composables/useTelegramService'
 
 export default {
   name: 'ShoppingCart',
@@ -142,8 +142,70 @@ export default {
           items: cartItems // Передаем массив товаров
         }
 
+        // Формируем подробное сообщение для Telegram
+        const dateTime = new Date(orderData.datetime);
+        const formattedDate = dateTime.toLocaleDateString('ru-RU', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        });
+        const formattedTime = dateTime.toLocaleTimeString('ru-RU', {
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+
+        // Собираем информацию о товарах
+        let itemsInfo = cartItems.map((item, index) => {
+          let itemInfo = `${index + 1}. ${item.title || this.getServiceTypeText(item.type)} - ${item.price} руб × ${item.quantity}`;
+
+          // Добавляем параметры услуги если они есть
+          const params = [];
+          if (item.workers) params.push(`${item.workers} грузчика`);
+          if (item.hours) params.push(`${item.hours} часа`);
+          if (item.vehicle_type) {
+            const vehicleText = this.getVehicleTypeText(item.vehicle_type);
+            params.push(vehicleText);
+          }
+
+          if (params.length > 0) {
+            itemInfo += ` (${params.join(', ')})`;
+          }
+          return itemInfo;
+        }).join('\n');
+
+        // Форматируем способ оплаты
+        const paymentMethod = orderData.payment_method === 'cash' ? 'Наличными' : 'Картой';
+
+        // Формируем сообщение для Telegram
+        const telegramMessage = `
+🔔 Новый заказ из корзины!
+
+👤 Клиент: ${orderData.contact_name}
+📞 Телефон: ${orderData.phone}
+🏠 Адрес: ${orderData.address}
+🕒 Дата и время: ${formattedDate} в ${formattedTime}
+💵 Способ оплаты: ${paymentMethod}
+
+📋 Состав заказа:
+${itemsInfo}
+
+${orderData.promo_code ? `🎁 Промокод: ${orderData.promo_code}\n🔽 Скидка: ${discount} руб\n🏷️ Цена без скидки: ${originalPrice} руб\n` : ''}
+💰 Итоговая цена: ${orderData.final_price} руб
+
+${orderData.comment ? `💬 Комментарий:\n${orderData.comment}` : ''}
+        `;
+
+        // Отправляем сообщение в Telegram
+        try {
+          const telegramService = useTelegramService();
+          await telegramService.sendMessage(telegramMessage);
+          console.log('Уведомление успешно отправлено в Telegram');
+        } catch (telegramError) {
+          console.error('Ошибка отправки в Telegram:', telegramError);
+          // При ошибке отправки продолжаем оформление заказа
+        }
+
         console.log('Отправляемые данные заказа:', orderDetails)
-        console.log('Товары в заказе:', cartItems)
 
         const ordersStore = useOrdersStore()
         await ordersStore.createOrder(orderDetails)
@@ -151,6 +213,7 @@ export default {
         this.cartStore.clearCart()
         this.showOrderForm = false
         this.showToast('Заказ успешно оформлен!', 'success')
+        this.$router.push('/order-success');
       } catch (error) {
         this.showToast(error.message || 'Ошибка при оформлении заказа', 'error')
       }
@@ -173,6 +236,16 @@ export default {
         truck: 'Грузовик (до 5 тонн)'
       }
       return types[type] || type
+    },
+    getServiceTypeText(type) {
+      const types = {
+        'moving': 'Квартирный переезд',
+        'office': 'Офисный переезд',
+        'loading': 'Погрузка/разгрузка',
+        'lifting': 'Подъем на этаж',
+        'cart': 'Заказ из корзины'
+      };
+      return types[type] || type;
     }
   },
   inject: ['showToast'],
@@ -184,7 +257,7 @@ export default {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .cart-content {
@@ -195,9 +268,9 @@ export default {
 }
 
 .cart-items {
-  background: #282828;
+  background: var(--bg-secondary);
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--card-shadow);
 }
 
 .cart-item {
@@ -206,12 +279,12 @@ export default {
   align-items: center;
   gap: 1rem;
   padding: 1rem;
-  border-bottom: 1px solid #404040;
+  border-bottom: 1px solid var(--border-color);
   transition: background-color 0.3s ease;
 }
 
 .cart-item:hover {
-  background: #323232;
+  background: var(--bg-elevated);
 }
 
 .item-image {
@@ -222,16 +295,16 @@ export default {
 }
 
 .item-info h3 {
-  color: #ffffff;
+  color: var(--text-primary);
   margin-bottom: 0.5rem;
 }
 
 .item-price {
-  color: #1db954;
+  color: var(--accent-primary);
 }
 
 .item-total {
-  color: #1db954;
+  color: var(--accent-primary);
   font-weight: bold;
 }
 
@@ -244,9 +317,9 @@ export default {
 .quantity-btn {
   width: 30px;
   height: 30px;
-  border: 1px solid #404040;
-  background: #404040;
-  color: #ffffff;
+  border: 1px solid var(--border-color);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -257,7 +330,7 @@ export default {
 }
 
 .quantity-btn:hover:not(:disabled) {
-  background: #505050;
+  background: var(--bg-secondary-hover);
 }
 
 .quantity-btn:disabled {
@@ -274,21 +347,21 @@ export default {
 .remove-button {
   background: none;
   border: none;
-  color: #e91429;
+  color: var(--error-color);
   font-size: 1.5rem;
   cursor: pointer;
   transition: color 0.3s ease;
 }
 
 .remove-button:hover {
-  color: #ff1430;
+  color: var(--error-color-hover);
 }
 
 .cart-summary {
-  background: #282828;
+  background: var(--bg-secondary);
   padding: 1.5rem;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--card-shadow);
   height: fit-content;
 }
 
@@ -296,20 +369,20 @@ export default {
   display: flex;
   justify-content: space-between;
   margin: 1rem 0;
-  color: #b3b3b3;
+  color: var(--text-secondary);
 }
 
 .total {
   font-size: 1.25rem;
   font-weight: bold;
-  border-top: 1px solid #404040;
+  border-top: 1px solid var(--border-color);
   padding-top: 1rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .checkout-button {
   width: 100%;
-  background: #1db954;
+  background: var(--accent-primary);
   color: white;
   border: none;
   padding: 1rem;
@@ -320,12 +393,12 @@ export default {
 }
 
 .checkout-button:hover {
-  background: #1ed760;
+  background: var(--accent-secondary);
 }
 
 .clear-button {
   width: 100%;
-  background: #e91429;
+  background: var(--error-color);
   color: white;
   border: none;
   padding: 1rem;
@@ -336,23 +409,23 @@ export default {
 }
 
 .clear-button:hover {
-  background: #ff1430;
+  background: var(--error-color-hover);
 }
 
 .empty-cart {
   text-align: center;
   padding: 3rem;
-  color: #b3b3b3;
+  color: var(--text-secondary);
 }
 
 .empty-cart h2 {
-  color: #ffffff;
+  color: var(--text-primary);
   margin-bottom: 1rem;
 }
 
 .empty-cart .btn-primary {
   display: inline-block;
-  background: #1db954;
+  background: var(--accent-primary);
   color: white;
   text-decoration: none;
   padding: 1rem 2rem;
@@ -362,7 +435,7 @@ export default {
 }
 
 .empty-cart .btn-primary:hover {
-  background: #1ed760;
+  background: var(--accent-secondary);
   transform: translateY(-2px);
 }
 
@@ -381,7 +454,7 @@ export default {
 }
 
 .modal-content {
-  background: #282828;
+  background: var(--bg-secondary);
   padding: 1rem;
   border-radius: 8px;
   position: relative;
@@ -401,13 +474,13 @@ export default {
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: #b3b3b3;
+  color: var(--text-secondary);
   z-index: 1;
 }
 
 .item-params {
   font-size: 0.85rem;
-  color: #b3b3b3;
+  color: var(--text-secondary);
   display: flex;
   gap: 1rem;
   margin-top: 0.25rem;
@@ -505,13 +578,13 @@ export default {
     font-size: 1.2rem;
     background: none;
     border: none;
-    color: #b3b3b3;
+    color: var(--text-secondary);
     cursor: pointer;
     z-index: 1;
   }
 
   .remove-button:hover {
-    color: #ff4444;
+    color: var(--error-color);
   }
 }
 

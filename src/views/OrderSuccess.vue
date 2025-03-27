@@ -22,24 +22,24 @@ export default {
   margin: 3rem auto;
   padding: 2rem;
   text-align: center;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .success-content {
-  background: #282828;
+  background: var(--bg-secondary);
   padding: 2rem;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--card-shadow);
 }
 
 h1 {
-  color: #1db954;
+  color: var(--accent-primary);
   margin-bottom: 1rem;
 }
 
 p {
   margin-bottom: 2rem;
-  color: #b3b3b3;
+  color: var(--text-secondary);
 }
 
 .buttons {
@@ -50,15 +50,15 @@ p {
 
 .btn-primary {
   display: inline-block;
-  background: #1db954;
+  background: var(--accent-primary);
   color: white;
   text-decoration: none;
   padding: 0.75rem 1.5rem;
   border-radius: 4px;
-  transition: background-color 0.3s ease;
+  transition: var(--transition-standard);
 }
 
 .btn-primary:hover {
-  background: #1ed760;
+  background: var(--accent-secondary);
 }
 </style>

@@ -69,22 +69,22 @@ export default {
 .animated-price {
   display: inline-block;
   position: relative;
-  color: #ffffff;
+  color: var(--text-primary);
   transition: color 0.3s ease;
 }
 
 .animated-price::after {
-  content: '₽';
+  content: ' руб';
   margin-left: 4px;
 }
 
 .animated-price.decrease {
-  color: #e91429;
+  color: var(--error-color);
   animation: shake 0.5s ease-in-out;
 }
 
 .animated-price.increase {
-  color: #1db954;
+  color: var(--accent-primary);
   animation: bounce 0.5s ease-in-out;
 }
 

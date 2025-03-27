@@ -112,7 +112,7 @@ export default {
 
 <style scoped>
 .footer {
-  background: #000000;
+  background: var(--navbar-bg);
   padding: 2rem;
   margin-top: auto;
 }
@@ -128,7 +128,7 @@ export default {
 .footer-section h3 {
   font-size: 1.2rem;
   margin-bottom: 1rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .footer-links {
@@ -142,22 +142,22 @@ export default {
 
 .footer-links a {
   text-decoration: none;
-  color: #b3b3b3;
+  color: var(--text-secondary);
   transition: color 0.3s ease;
 }
 
 .footer-links a:hover {
-  color: #1db954;
+  color: var(--accent-primary);
 }
 
 .footer-section a {
   text-decoration: none;
-  color: #b3b3b3;
+  color: var(--text-secondary);
   transition: color 0.3s ease;
 }
 
 .footer-section a:hover {
-  color: #1db954;
+  color: var(--accent-primary);
 }
 
 .social-links {
@@ -169,46 +169,46 @@ export default {
 .social-link {
   min-width: 120px;
   height: 40px;
-  background: #282828;
+  background: var(--bg-secondary);
   border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #b3b3b3;
+  color: var(--text-secondary);
   text-decoration: none;
   transition: all 0.3s ease;
   padding: 0 1rem;
 }
 
 .social-link:hover {
-  background: #1db954;
+  background: var(--accent-primary);
   color: white;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(29, 185, 84, 0.3);
 }
 
 .contact-info {
-  color: #b3b3b3;
+  color: var(--text-secondary);
   line-height: 1.6;
 }
 
 .contact-info a {
-  color: #1db954;
+  color: var(--accent-primary);
   text-decoration: none;
   transition: color 0.3s ease;
 }
 
 .contact-info a:hover {
-  color: #1ed760;
+  color: var(--accent-secondary);
   text-decoration: none;
 }
 
 .footer-bottom {
   margin-top: 2rem;
   padding-top: 1rem;
-  border-top: 1px solid #282828;
+  border-top: 1px solid var(--bg-secondary);
   text-align: center;
-  color: #b3b3b3;
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
@@ -226,15 +226,15 @@ export default {
 }
 
 .modal-content {
-  background: #282828;
+  background: var(--bg-secondary);
   padding: 2rem;
   border-radius: 8px;
   position: relative;
   width: 90%;
   max-width: 400px;
   text-align: center;
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  color: var(--text-primary);
+  box-shadow: var(--card-shadow);
 }
 
 .close-button {
@@ -245,37 +245,37 @@ export default {
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: #b3b3b3;
+  color: var(--text-secondary);
   transition: color 0.3s ease;
 }
 
 .close-button:hover {
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .vacancy-info {
   margin-top: 1.5rem;
-  color: #b3b3b3;
+  color: var(--text-secondary);
 }
 
 .phone-number {
   display: block;
   font-size: 1.5rem;
   font-weight: bold;
-  color: #1db954;
+  color: var(--accent-primary);
   text-decoration: none;
   margin: 1rem 0;
   transition: color 0.3s ease;
 }
 
 .phone-number:hover {
-  color: #1ed760;
+  color: var(--accent-secondary);
   text-decoration: none;
 }
 
 .close-modal {
-  background: #404040;
-  color: white;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: 50px;
@@ -286,6 +286,6 @@ export default {
 }
 
 .close-modal:hover {
-  background: #282828;
+  background: var(--bg-secondary);
 }
 </style>

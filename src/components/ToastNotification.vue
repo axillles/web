@@ -62,43 +62,43 @@ export default {
   right: 20px;
   padding: 1rem 2rem;
   border-radius: 50px;
-  background: #282828;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  background: var(--bg-secondary);
+  box-shadow: var(--card-shadow);
   display: flex;
   align-items: center;
   gap: 1rem;
   z-index: 1000;
-  transition: all 0.3s ease;
-  border: 1px solid #404040;
+  transition: var(--transition-standard);
+  border: 1px solid var(--border-color);
 }
 
 .toast-message {
-  color: #ffffff;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
 .toast.success {
-  background: #1db954;
+  background: var(--success-color);
   color: white;
-  border-color: #1ed760;
+  border-color: var(--success-color);
 }
 
 .toast.error {
-  background: #e91429;
+  background: var(--error-color);
   color: white;
-  border-color: #ff1430;
+  border-color: var(--error-color);
 }
 
 .toast.info {
-  background: #2e77d0;
+  background: var(--info-color);
   color: white;
-  border-color: #3498db;
+  border-color: var(--info-color);
 }
 
 .toast.warning {
-  background: #ff9800;
+  background: var(--warning-color);
   color: white;
-  border-color: #ffa726;
+  border-color: var(--warning-color);
 }
 
 .close-button {

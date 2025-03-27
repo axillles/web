@@ -104,7 +104,7 @@ export default {
 <style scoped>
 .privacy-policy {
   padding: 2rem 0;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .container {
@@ -121,14 +121,14 @@ h1 {
 
 .policy-section {
   margin-bottom: 3rem;
-  background: #282828;
+  background: var(--bg-secondary);
   padding: 2rem;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--card-shadow);
 }
 
 h2 {
-  color: #1db954;
+  color: var(--accent-primary);
   margin-bottom: 1rem;
   font-size: 1.5rem;
 }
@@ -136,7 +136,7 @@ h2 {
 p {
   margin-bottom: 1rem;
   line-height: 1.6;
-  color: #b3b3b3;
+  color: var(--text-secondary);
 }
 
 ul {
@@ -148,18 +148,18 @@ li {
   margin-bottom: 1rem;
   padding-left: 1.5rem;
   position: relative;
-  color: #b3b3b3;
+  color: var(--text-secondary);
 }
 
 li::before {
   content: "•";
-  color: #1db954;
+  color: var(--accent-primary);
   position: absolute;
   left: 0;
 }
 
 strong {
-  color: #ffffff;
+  color: var(--text-primary);
   font-weight: 500;
 }
 

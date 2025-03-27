@@ -78,7 +78,7 @@ export default {
   text-align: center;
   margin: 1rem 0;
   position: relative;
-  color: #b3b3b3;
+  color: var(--text-secondary);
 }
 
 .divider::before,
@@ -88,7 +88,7 @@ export default {
   top: 50%;
   width: 45%;
   height: 1px;
-  background: #404040;
+  background: var(--border-color);
 }
 
 .divider::before {
@@ -106,12 +106,12 @@ export default {
   width: 100%;
   padding: 0.75rem;
   margin: 0.5rem 0;
-  border: 1px solid #404040;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  background: #282828;
-  color: #ffffff;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition-standard);
   gap: 0.5rem;
 }
 

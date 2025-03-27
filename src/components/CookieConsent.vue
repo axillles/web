@@ -135,19 +135,18 @@ export default {
 <style scoped>
 .cookie-consent {
   position: fixed;
-  bottom: 0;
+  bottom: -100%;
   left: 0;
-  right: 0;
-  background: #282828;
+  width: 100%;
+  background: var(--bg-secondary);
   padding: 1rem;
-  transform: translateY(100%);
-  transition: transform 0.3s ease;
+  box-shadow: var(--card-shadow);
   z-index: 1000;
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+  transition: bottom 0.3s ease;
 }
 
 .cookie-consent.show {
-  transform: translateY(0);
+  bottom: 0;
 }
 
 .cookie-content {
@@ -157,22 +156,21 @@ export default {
   align-items: center;
   justify-content: space-between;
   gap: 2rem;
-  color: #ffffff;
 }
 
 .cookie-text h3 {
   margin-bottom: 0.5rem;
+  color: var(--text-primary);
 }
 
 .cookie-text p {
-  color: #b3b3b3;
-  font-size: 0.9rem;
-  line-height: 1.5;
+  color: var(--text-secondary);
 }
 
 .policy-link {
-  color: #1db954;
+  color: var(--accent-primary);
   text-decoration: none;
+  font-weight: 500;
 }
 
 .policy-link:hover {
@@ -182,11 +180,10 @@ export default {
 .cookie-actions {
   display: flex;
   gap: 1rem;
-  flex-shrink: 0;
 }
 
 .btn-accept {
-  background: #1db954;
+  background: var(--accent-primary);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -196,31 +193,30 @@ export default {
 }
 
 .btn-accept:hover {
-  background: #1ed760;
+  background: var(--accent-secondary);
 }
 
 .btn-settings {
-  background: #404040;
-  color: white;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: 4px;
   cursor: pointer;
-  transition: background 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .btn-settings:hover {
-  background: #505050;
+  background: var(--border-color);
 }
 
-/* Модальное окно настроек */
 .cookie-settings-modal {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -228,15 +224,15 @@ export default {
 }
 
 .modal-content {
-  background: #282828;
+  background: var(--bg-secondary);
   padding: 2rem;
   border-radius: 8px;
   width: 90%;
   max-width: 600px;
-  max-height: 90vh;
+  max-height: 80vh;
   overflow-y: auto;
   position: relative;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .close-button {
@@ -245,24 +241,24 @@ export default {
   right: 1rem;
   background: none;
   border: none;
-  color: #b3b3b3;
   font-size: 1.5rem;
   cursor: pointer;
+  color: var(--text-secondary);
   transition: color 0.3s ease;
 }
 
 .close-button:hover {
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .settings-section {
-  margin: 2rem 0;
+  margin-top: 1.5rem;
 }
 
 .cookie-option {
   margin-bottom: 1.5rem;
   padding-bottom: 1.5rem;
-  border-bottom: 1px solid #404040;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .cookie-option:last-child {
@@ -278,20 +274,20 @@ export default {
 
 .option-header h4 {
   margin: 0;
+  color: var(--text-primary);
 }
 
 .cookie-option p {
-  color: #b3b3b3;
+  color: var(--text-secondary);
   font-size: 0.9rem;
-  margin: 0;
 }
 
 /* Переключатель */
 .switch {
   position: relative;
   display: inline-block;
-  width: 50px;
-  height: 24px;
+  width: 60px;
+  height: 34px;
 }
 
 .switch input {
@@ -307,25 +303,29 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #404040;
-  transition: 0.3s;
-  border-radius: 24px;
+  background-color: var(--bg-elevated);
+  transition: .4s;
+  border-radius: 34px;
 }
 
 .slider:before {
   position: absolute;
   content: "";
-  height: 16px;
-  width: 16px;
+  height: 26px;
+  width: 26px;
   left: 4px;
   bottom: 4px;
   background-color: white;
-  transition: 0.3s;
+  transition: .4s;
   border-radius: 50%;
 }
 
 input:checked + .slider {
-  background-color: #1db954;
+  background-color: var(--accent-primary);
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px var(--accent-primary);
 }
 
 input:disabled + .slider {
@@ -344,7 +344,7 @@ input:checked + .slider:before {
 }
 
 .btn-save {
-  background: #1db954;
+  background: var(--accent-primary);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -354,7 +354,7 @@ input:checked + .slider:before {
 }
 
 .btn-save:hover {
-  background: #1ed760;
+  background: var(--accent-secondary);
 }
 
 /* Адаптивность */

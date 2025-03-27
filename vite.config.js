@@ -17,4 +17,15 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  // Настройка прокси для разработки API
+  server: {
+    port: 5173,
+    proxy: {
+      // Перенаправляем API запросы на Express-сервер
+      '/api': {
+        target: 'http://localhost:3002',
+        changeOrigin: true,
+      }
+    }
+  }
 })

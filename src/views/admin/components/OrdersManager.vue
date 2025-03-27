@@ -492,31 +492,34 @@ export default defineComponent({
 .filter-select {
   padding: 0.5rem;
   border-radius: 4px;
-  background: #404040;
-  color: white;
-  border: 1px solid #505050;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
 }
 
 .table-container {
   overflow-x: auto;
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius);
+  box-shadow: var(--card-shadow);
 }
 
 .orders-table {
   width: 100%;
   border-collapse: collapse;
-  background: #282828;
-  color: #ffffff;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .orders-table th,
 .orders-table td {
   padding: 0.75rem;
   text-align: left;
-  border-bottom: 1px solid #404040;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .orders-table th {
-  background: #1a1a1a;
+  background: var(--bg-elevated);
   font-weight: 500;
   text-transform: uppercase;
   font-size: 0.9rem;
@@ -525,9 +528,9 @@ export default defineComponent({
 .status-select {
   padding: 0.25rem;
   border-radius: 4px;
-  background: #404040;
-  color: white;
-  border: 1px solid #505050;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   width: 100%;
 }
 
@@ -535,9 +538,9 @@ export default defineComponent({
   width: 100%;
   padding: 0.25rem;
   border-radius: 4px;
-  background: #404040;
-  color: white;
-  border: 1px solid #505050;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
 }
 
 .actions {
@@ -554,15 +557,23 @@ export default defineComponent({
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+}
+
+.edit-btn:hover,
+.delete-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }
 
 .edit-btn {
-  background: #2196F3;
+  background: var(--info-color);
   color: white;
 }
 
 .delete-btn {
-  background: #F44336;
+  background: var(--error-color);
   color: white;
 }
 
@@ -573,7 +584,7 @@ export default defineComponent({
 .loading {
   text-align: center;
   padding: 2rem;
-  color: #b3b3b3;
+  color: var(--text-secondary);
 }
 
 .orders-table td {
@@ -619,7 +630,7 @@ export default defineComponent({
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: var(--modal-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -627,12 +638,13 @@ export default defineComponent({
 }
 
 .modal-content {
-  background: #282828;
-  border-radius: 8px;
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius);
   width: 90%;
   max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
 }
 
 .modal-header {
@@ -640,7 +652,9 @@ export default defineComponent({
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  border-bottom: 1px solid #404040;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-elevated);
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
 }
 
 .modal-body {
@@ -650,17 +664,28 @@ export default defineComponent({
 .close-btn {
   background: none;
   border: none;
-  color: #b3b3b3;
+  color: var(--text-secondary);
   cursor: pointer;
+  font-size: 1.2rem;
+  transition: color 0.2s;
+}
+
+.close-btn:hover {
+  color: var(--text-primary);
 }
 
 .detail-group {
   margin-bottom: 1.5rem;
+  background: var(--bg-elevated);
+  padding: 1rem;
+  border-radius: var(--border-radius);
 }
 
 .detail-group h4 {
   margin-bottom: 1rem;
-  color: #1db954;
+  color: var(--accent-primary);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
 }
 
 .detail-row {
@@ -670,38 +695,59 @@ export default defineComponent({
 
 .label {
   min-width: 150px;
-  color: #b3b3b3;
+  color: var(--text-secondary);
 }
 
 .comment-input {
   width: 100%;
   min-height: 100px;
   padding: 0.5rem;
-  background: #404040;
-  border: 1px solid #505050;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: white;
+  color: var(--text-primary);
   resize: vertical;
 }
 
+.comment-input:focus {
+  border-color: var(--accent-primary);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(29, 185, 84, 0.25);
+}
+
 .details-btn {
-  background: #1db954;
+  background: var(--accent-primary);
   color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.details-btn:hover {
+  background: var(--accent-secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .confirm-delete {
   max-width: 400px !important;
   padding: 2rem;
   text-align: center;
+  border-radius: var(--border-radius);
+  background: var(--bg-secondary);
 }
 
 .confirm-delete h3 {
   margin-bottom: 1rem;
+  color: var(--error-color);
 }
 
 .confirm-delete p {
   margin-bottom: 2rem;
-  color: #b3b3b3;
+  color: var(--text-secondary);
 }
 
 .confirm-actions {
@@ -717,21 +763,28 @@ export default defineComponent({
   border-radius: 4px;
   cursor: pointer;
   font-weight: 500;
+  transition: all 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .btn-cancel {
-  background: #404040;
-  color: white;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
 }
 
 .btn-confirm {
-  background: #F44336;
+  background: var(--error-color);
   color: white;
 }
 
-.details-btn:hover,
-.delete-btn:hover {
-  opacity: 0.9;
+.btn-cancel:hover,
+.btn-confirm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-confirm:hover {
+  background: var(--error-color-hover);
 }
 
 .promo-info {
@@ -741,15 +794,16 @@ export default defineComponent({
 }
 
 .discount-badge {
-  background: #1db954;
+  background: var(--accent-primary);
   color: white;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   font-size: 0.9rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .total-price {
-  color: #1db954;
+  color: var(--accent-primary);
   font-weight: bold;
 }
 
@@ -761,23 +815,30 @@ export default defineComponent({
 
 .original-price {
   font-size: 0.8rem;
-  color: #b3b3b3;
+  color: var(--text-secondary);
+  text-decoration: line-through;
 }
 
 .final-price {
-  color: #1db954;
+  color: var(--accent-primary);
   font-weight: bold;
 }
 
 .cart-items-list {
-  background: #323232;
-  border-radius: 4px;
+  background: var(--bg-elevated);
+  border-radius: var(--border-radius);
   padding: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) inset;
 }
 
 .cart-item-row {
   padding: 0.75rem;
-  border-bottom: 1px solid #404040;
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s;
+}
+
+.cart-item-row:hover {
+  background-color: var(--bg-secondary-hover);
 }
 
 .cart-item-row:last-child {
@@ -797,41 +858,26 @@ export default defineComponent({
 
 .item-title {
   font-weight: 500;
-  display: block;
-  margin-bottom: 0.25rem;
+  color: var(--accent-primary);
 }
 
 .item-params {
   font-size: 0.85rem;
-  color: #b3b3b3;
-  display: flex;
-  gap: 1rem;
-}
-
-.item-price-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  white-space: nowrap;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
 }
 
 .item-price {
-  color: #1db954;
-}
-
-.item-quantity {
-  color: #b3b3b3;
-}
-
-.item-total {
+  color: var(--accent-primary);
   font-weight: 500;
 }
 
 .no-items {
   padding: 1rem;
   text-align: center;
-  color: #b3b3b3;
-  background: #323232;
-  border-radius: 4px;
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
+  border-radius: var(--border-radius);
+  border: 1px dashed var(--border-color);
 }
 </style>

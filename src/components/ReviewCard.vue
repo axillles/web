@@ -40,16 +40,16 @@ export default {
 <style scoped>
 .review-card {
   padding: 2rem;
-  background: #282828;
+  background: var(--bg-secondary);
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
+  box-shadow: var(--card-shadow);
+  transition: var(--transition-standard);
 }
 
 .review-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-  background: #404040;
+  box-shadow: var(--card-hover-shadow);
+  background: var(--bg-elevated);
 }
 
 .review-header {
@@ -68,7 +68,7 @@ export default {
 
 .review-author h4 {
   margin: 0;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .review-rating {
@@ -86,13 +86,13 @@ export default {
 }
 
 .review-text {
-  color: #b3b3b3;
+  color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: 1rem;
 }
 
 .review-date {
-  color: #b3b3b3;
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
@@ -107,23 +107,23 @@ export default {
   border: none;
   border-radius: 50px;
   cursor: pointer;
-  background: #404040;
-  color: #ffffff;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
   font-size: 0.9rem;
-  transition: all 0.3s ease;
+  transition: var(--transition-standard);
 }
 
 .action-button:hover {
-  background: #1db954;
+  background: var(--accent-primary);
 }
 
 .helpful-count {
   font-size: 0.9rem;
-  color: #b3b3b3;
+  color: var(--text-secondary);
   transition: color 0.3s ease;
 }
 
 .helpful-count.active {
-  color: #1db954;
+  color: var(--accent-primary);
 }
 </style>

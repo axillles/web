@@ -7,24 +7,55 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Node and dependencies
 node_modules
-.DS_Store
 dist
 dist-ssr
-coverage
 *.local
-
-/cypress/videos/
-/cypress/screenshots/
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea
+.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# Секретные файлы и данные
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+
+# Файлы с ключами
+*.pem
+*.key
+*.crt
+
+# Файлы с паролями или токенами
+secrets.json
+*password*
+*token*
+
+# Временные файлы
+.tmp
+.temp
+.cache
+
+# Файлы конфигурации базы данных
+config.json
+database.json
+
+# Файлы резервных копий
+*.backup
+*.bak
+*.swp
+
+/cypress/videos/
+/cypress/screenshots/
 
 *.tsbuildinfo

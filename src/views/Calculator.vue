@@ -242,9 +242,9 @@ export default {
 <style scoped>
 .calculator {
   padding: 2rem;
-  background: #121212;
+  background: var(--bg-primary);
   min-height: 100vh;
-  color: #ffffff;
+  color: var(--text-primary);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -254,16 +254,16 @@ export default {
   font-size: 2.5rem;
   margin-bottom: 2rem;
   text-align: center;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .calculator-form {
   max-width: 800px;
   width: 100%;
   padding: 2rem;
-  background: #282828;
+  background: var(--bg-secondary);
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--card-shadow);
 }
 
 .form-group {
@@ -274,7 +274,7 @@ export default {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: bold;
-  color: #ffffff;
+  color: var(--text-primary);
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -284,12 +284,12 @@ export default {
 .form-group select {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #404040;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 1rem;
-  background: #404040;
-  color: #ffffff;
-  transition: all 0.3s ease;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  transition: var(--transition-standard);
   height: 48px;
 }
 
@@ -297,45 +297,45 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: #404040;
+  background: var(--bg-elevated);
   border-radius: 4px;
   padding: 0.25rem;
-  border: 1px solid #404040;
+  border: 1px solid var(--border-color);
 }
 
 .level-input {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: #404040;
+  background: var(--bg-elevated);
   border-radius: 4px;
   padding: 0.25rem;
-  border: 1px solid #404040;
+  border: 1px solid var(--border-color);
 }
 
 .number-input button {
   width: 36px;
   height: 36px;
   border: none;
-  background: #282828;
-  color: #ffffff;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   border-radius: 4px;
   cursor: pointer;
   font-size: 1.2rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: var(--transition-standard);
 }
 
 .number-input button:hover {
-  background: #1db954;
+  background: var(--accent-primary);
 }
 
 .number-display {
   min-width: 60px;
   text-align: center;
-  color: #ffffff;
+  color: var(--text-primary);
   font-size: 1.1rem;
   font-weight: 500;
 }
@@ -343,18 +343,18 @@ export default {
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #1db954;
+  border-color: var(--accent-primary);
 }
 
 .form-group select option {
-  background: #404040;
-  color: #ffffff;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
 }
 
 .result-section {
   margin-top: 2rem;
   padding-top: 2rem;
-  border-top: 1px solid #404040;
+  border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -368,17 +368,17 @@ export default {
 
 .price-label {
   font-size: 1.2rem;
-  color: #b3b3b3;
+  color: var(--text-secondary);
 }
 
 .price-value {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #1db954;
+  color: var(--accent-primary);
 }
 
 .order-button {
-  background: #1db954;
+  background: var(--accent-primary);
   color: white;
   border: none;
   padding: 1rem 3rem;
@@ -387,13 +387,13 @@ export default {
   cursor: pointer;
   min-width: 200px;
   font-weight: 500;
-  transition: background 0.3s ease;
+  transition: var(--transition-standard);
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
 .order-button:hover {
-  background: #1ed760;
+  background: var(--accent-secondary);
 }
 
 .modal {
@@ -411,7 +411,7 @@ export default {
 }
 
 .modal-content {
-  background: #282828;
+  background: var(--bg-secondary);
   padding: 1rem;
   border-radius: 8px;
   position: relative;
@@ -421,6 +421,7 @@ export default {
   max-height: 90vh;
   display: flex;
   flex-direction: column;
+  box-shadow: var(--card-shadow);
 }
 
 .close-button {
@@ -431,7 +432,12 @@ export default {
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: #b3b3b3;
+  color: var(--text-secondary);
   z-index: 1;
+  transition: var(--transition-standard);
+}
+
+.close-button:hover {
+  color: var(--text-primary);
 }
 </style>

@@ -127,13 +127,13 @@ export default {
 }
 
 .modal-content {
-  background: #282828;
+  background: var(--bg-secondary);
   padding: 2rem;
   border-radius: 8px;
   position: relative;
   width: 90%;
   max-width: 400px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--card-shadow);
 }
 
 .modal-content * {
@@ -148,12 +148,12 @@ export default {
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: #b3b3b3;
-  transition: color 0.3s ease;
+  color: var(--text-secondary);
+  transition: var(--transition-standard);
 }
 
 .close-button:hover {
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .modal-header {
@@ -162,14 +162,14 @@ export default {
 }
 
 .modal-header h2 {
-  color: #ffffff;
+  color: var(--text-primary);
   margin-bottom: 0.5rem;
 }
 
 .auth-tabs {
   display: flex;
   margin-bottom: 2rem;
-  border-bottom: 1px solid #404040;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .auth-tabs button {
@@ -180,12 +180,13 @@ export default {
   border-bottom: 2px solid transparent;
   cursor: pointer;
   font-size: 1rem;
-  transition: all 0.3s ease;
+  color: var(--text-secondary);
+  transition: var(--transition-standard);
 }
 
 .auth-tabs button.active {
-  border-bottom-color: #1db954;
-  color: #1db954;
+  border-bottom-color: var(--accent-primary);
+  color: var(--accent-primary);
 }
 
 .auth-form {
@@ -202,27 +203,27 @@ export default {
 
 .form-group label {
   font-weight: bold;
-  color: #ffffff;
+  color: var(--text-primary);
   font-size: 0.9rem;
 }
 
 .form-group input {
   padding: 0.5rem;
-  border: 1px solid #404040;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 1rem;
-  background: #404040;
-  color: #ffffff;
-  transition: all 0.3s ease;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  transition: var(--transition-standard);
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: #1db954;
+  border-color: var(--accent-primary);
 }
 
 .form-group input::placeholder {
-  color: #b3b3b3;
+  color: var(--text-secondary);
 }
 
 .form-footer {
@@ -231,27 +232,27 @@ export default {
 }
 
 .form-footer a {
-  color: #1db954;
+  color: var(--accent-primary);
   text-decoration: none;
-  transition: color 0.3s ease;
+  transition: var(--transition-standard);
 }
 
 .form-footer a:hover {
-  color: #1ed760;
+  color: var(--accent-secondary);
 }
 
 .btn-primary {
-  background: #1db954;
+  background: var(--accent-primary);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: 50px;
   cursor: pointer;
   font-weight: 500;
-  transition: background 0.3s ease;
+  transition: var(--transition-standard);
 }
 
 .btn-primary:hover {
-  background: #1ed760;
+  background: var(--accent-secondary);
 }
 </style>

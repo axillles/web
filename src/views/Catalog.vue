@@ -2,56 +2,69 @@
   <div class="catalog">
     <h1>Каталог услуг</h1>
 
-    <!-- Фильтры и сортировка -->
-    <div class="filters-container">
-      <div class="filters-content">
-        <!-- Поиск -->
-        <div class="search-container">
-          <input
-            type="text"
-            v-model="searchQuery"
-            placeholder="Поиск услуг..."
-            class="search-input"
-          >
-        </div>
+    <!-- Фильтры и сортировка с анимацией -->
+    <transition name="slide-fade">
+      <div class="filters-container" v-show="!isFiltersHidden">
+        <div class="filters-content">
+          <!-- Поиск -->
+          <div class="search-container">
+            <input
+              type="text"
+              v-model="searchQuery"
+              placeholder="Поиск услуг..."
+              class="search-input"
+            >
+          </div>
 
-        <!-- Категории -->
-        <div class="categories">
-          <button
-            v-for="category in categories"
-            :key="category.id"
-            :class="{ active: selectedCategory === category.id }"
-            @click="selectedCategory = category.id"
-            class="category-button"
-          >
-            {{ category.name }}
-          </button>
-        </div>
+          <!-- Категории -->
+          <div class="categories">
+            <button
+              v-for="category in categories"
+              :key="category.id"
+              :class="{ active: selectedCategory === category.id }"
+              @click="selectedCategory = category.id"
+              class="category-button"
+            >
+              {{ category.name }}
+            </button>
+          </div>
 
-        <!-- Сортировка -->
-        <div class="sort-controls">
-          <button
-            v-for="option in sortOptions"
-            :key="option.value"
-            :class="{ active: sortBy === option.value }"
-            @click="sortBy = option.value"
-            class="sort-button"
-          >
-            {{ option.label }}
-          </button>
-        </div>
+          <!-- Сортировка -->
+          <div class="sort-controls">
+            <button
+              v-for="option in sortOptions"
+              :key="option.value"
+              :class="{ active: sortBy === option.value }"
+              @click="sortBy = option.value"
+              class="sort-button"
+            >
+              {{ option.label }}
+            </button>
+          </div>
 
-        <!-- Корзина -->
-        <div class="cart-summary" v-if="cartStore.totalItems > 0">
-          <span class="cart-count">{{ cartStore.totalItems }} услуг</span>
-          <span class="cart-total">{{ cartStore.totalPrice }} ₽</span>
-          <router-link to="/cart" class="btn-cart">Перейти в корзину</router-link>
+          <!-- Корзина -->
+          <div class="cart-summary" v-if="cartStore.totalItems > 0">
+            <span class="cart-count">{{ cartStore.totalItems }} услуг</span>
+            <span class="cart-total">{{ cartStore.totalPrice }} руб</span>
+            <router-link to="/cart" class="btn-cart">Перейти в корзину</router-link>
+          </div>
         </div>
       </div>
-    </div>
+    </transition>
+
+    <!-- Кнопка показа фильтров с анимацией -->
+    <transition name="fade">
+      <button
+        v-if="isFiltersHidden"
+        @click="toggleFilters"
+        class="show-filters-btn"
+      >
+        <i class="fas fa-filter"></i> Фильтры
+      </button>
+    </transition>
 
     <!-- Список услуг -->
-    <div class="services-grid">
+    <div class="services-grid" :class="{ 'has-top-margin': isFiltersHidden }">
       <ServiceCard
         v-for="service in filteredAndSortedServices"
         :key="service.id"
@@ -111,6 +124,9 @@ export default {
         { value: 'name_desc', label: 'Я-А' }
       ],
       searchQuery: '',
+      lastScrollTop: 0,
+      isFiltersHidden: false,
+      scrollThreshold: 100, // пикселей прокрутки для скрытия фильтров
     }
   },
   computed: {
@@ -150,6 +166,12 @@ export default {
       return filtered
     }
   },
+  mounted() {
+    window.addEventListener('scroll', this.handleScroll)
+  },
+  beforeUnmount() {
+    window.removeEventListener('scroll', this.handleScroll)
+  },
   async created() {
     try {
       await this.servicesStore.fetchServices()
@@ -160,6 +182,23 @@ export default {
     }
   },
   methods: {
+    handleScroll() {
+      const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop
+
+      // Прокрутка вниз
+      if (currentScrollTop > this.lastScrollTop && currentScrollTop > this.scrollThreshold) {
+        this.isFiltersHidden = true
+      }
+      // Прокрутка вверх до верха страницы
+      else if (currentScrollTop < this.scrollThreshold) {
+        this.isFiltersHidden = false
+      }
+
+      this.lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop
+    },
+    toggleFilters() {
+      this.isFiltersHidden = !this.isFiltersHidden
+    },
     showAddedToCartMessage(service) {
       this.showToast(`Услуга "${service.title}" добавлена в корзину`, 'success')
     },
@@ -203,22 +242,72 @@ export default {
 .catalog {
   padding: 2rem;
   min-height: 100vh;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 h1 {
   text-align: center;
   margin-bottom: 2rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .filters-container {
   position: sticky;
   top: 0;
-  background: #121212;
+  background: var(--bg-primary);
   padding: 1rem 0;
   margin-bottom: 2rem;
   z-index: 10;
+  width: 100%;
+}
+
+/* Анимации для плавного появления/исчезновения */
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all 0.4s ease;
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateY(-30px);
+  opacity: 0;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.show-filters-btn {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 100;
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: var(--card-shadow);
+  transition: var(--transition-standard);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.show-filters-btn:hover {
+  background: var(--accent-secondary);
+  transform: translateY(-2px);
+}
+
+.has-top-margin {
+  margin-top: 3.5rem;
 }
 
 .filters-content {
@@ -241,20 +330,20 @@ h1 {
   padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 50px;
-  background: #282828;
-  color: #ffffff;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   font-size: 1rem;
-  transition: all 0.3s ease;
+  transition: var(--transition-standard);
 }
 
 .search-input:focus {
   outline: none;
-  background: #404040;
-  box-shadow: 0 0 0 2px #1db954;
+  background: var(--bg-elevated);
+  box-shadow: 0 0 0 2px var(--accent-primary);
 }
 
 .search-input::placeholder {
-  color: #b3b3b3;
+  color: var(--text-secondary);
 }
 
 .categories {
@@ -268,18 +357,18 @@ h1 {
   padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 50px;
-  background: #282828;
-  color: #ffffff;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition-standard);
 }
 
 .category-button:hover {
-  background: #404040;
+  background: var(--bg-elevated);
 }
 
 .category-button.active {
-  background: #1db954;
+  background: var(--accent-primary);
   color: white;
 }
 
@@ -294,19 +383,19 @@ h1 {
   padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 50px;
-  background: #282828;
-  color: #ffffff;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition-standard);
   font-size: 1rem;
 }
 
 .sort-button:hover {
-  background: #404040;
+  background: var(--bg-elevated);
 }
 
 .sort-button.active {
-  background: #1db954;
+  background: var(--accent-primary);
   color: white;
 }
 
@@ -315,30 +404,30 @@ h1 {
   align-items: center;
   gap: 1rem;
   padding: 0.75rem 1rem;
-  background: #282828;
+  background: var(--bg-secondary);
   border-radius: 50px;
 }
 
 .cart-count {
-  color: #b3b3b3;
+  color: var(--text-secondary);
 }
 
 .cart-total {
-  color: #1db954;
+  color: var(--accent-primary);
   font-weight: bold;
 }
 
 .btn-cart {
-  background: #1db954;
+  background: var(--accent-primary);
   color: white;
   text-decoration: none;
   padding: 0.5rem 1rem;
   border-radius: 50px;
-  transition: background 0.3s ease;
+  transition: var(--transition-standard);
 }
 
 .btn-cart:hover {
-  background: #1ed760;
+  background: var(--accent-secondary);
 }
 
 .services-grid {
@@ -347,21 +436,22 @@ h1 {
   gap: 2rem;
   max-width: 1200px;
   margin: 0 auto;
+  transition: margin-top 0.3s ease;
 }
 
 .service-card {
   position: relative;
   padding: 2rem;
-  background: #282828;
+  background: var(--bg-secondary);
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
+  box-shadow: var(--card-shadow);
+  transition: var(--transition-standard);
 }
 
 .service-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-  background: #404040;
+  box-shadow: var(--card-hover-shadow);
+  background: var(--bg-elevated);
 }
 
 .service-image {
@@ -375,11 +465,11 @@ h1 {
 .service-title {
   font-size: 1.5rem;
   margin-bottom: 1rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .service-description {
-  color: #b3b3b3;
+  color: var(--text-secondary);
   margin-bottom: 1rem;
   line-height: 1.5;
 }
@@ -387,12 +477,12 @@ h1 {
 .service-price {
   font-size: 1.25rem;
   font-weight: bold;
-  color: #1db954;
+  color: var(--accent-primary);
   margin-bottom: 1rem;
 }
 
 .order-button {
-  background: #1db954;
+  background: var(--accent-primary);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -400,11 +490,11 @@ h1 {
   cursor: pointer;
   width: 100%;
   font-size: 1.1rem;
-  transition: background 0.3s ease;
+  transition: var(--transition-standard);
 }
 
 .order-button:hover {
-  background: #1ed760;
+  background: var(--accent-secondary);
 }
 
 /* Стили для модального окна */
@@ -422,13 +512,13 @@ h1 {
 }
 
 .modal-content {
-  background: #282828;
+  background: var(--bg-secondary);
   padding: 2rem;
   border-radius: 8px;
   position: relative;
   width: 90%;
   max-width: 500px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--card-shadow);
 }
 
 .close-button {
@@ -439,16 +529,16 @@ h1 {
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: #b3b3b3;
-  transition: color 0.3s ease;
+  color: var(--text-secondary);
+  transition: var(--transition-standard);
 }
 
 .close-button:hover {
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .modal-content h2 {
-  color: #ffffff;
+  color: var(--text-primary);
   margin-bottom: 1.5rem;
 }
 
@@ -486,6 +576,13 @@ h1 {
 
   .search-input {
     padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .show-filters-btn {
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.4rem 0.8rem;
     font-size: 0.9rem;
   }
 }

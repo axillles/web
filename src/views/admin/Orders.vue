@@ -81,12 +81,12 @@ export default {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .orders-table {
   margin-top: 2rem;
-  background: #282828;
+  background: var(--bg-secondary);
   border-radius: 8px;
   overflow: auto;
 }
@@ -99,21 +99,21 @@ table {
 th, td {
   padding: 1rem;
   text-align: left;
-  border-bottom: 1px solid #404040;
+  border-bottom: 1px solid var(--border-color);
 }
 
 th {
-  background: #323232;
-  color: #1db954;
+  background: var(--bg-elevated);
+  color: var(--accent-primary);
 }
 
 tr:hover {
-  background: #323232;
+  background: var(--bg-elevated);
 }
 
 .loading, .no-orders {
   text-align: center;
   padding: 2rem;
-  color: #b3b3b3;
+  color: var(--text-secondary);
 }
 </style>
