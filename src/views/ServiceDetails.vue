@@ -11,7 +11,12 @@
       <div class="service-info">
         <h1>{{ service.title }}</h1>
         <div class="service-price">от {{ service.price }} руб/час</div>
-        <button class="btn-primary" @click="addToCart">В корзину</button>
+        <div v-if="itemInCart" class="quantity-controls">
+          <button class="quantity-btn" @click="decrementQuantity">-</button>
+          <span class="quantity-display">{{ itemInCart.quantity }}</span>
+          <button class="quantity-btn" @click="incrementQuantity">+</button>
+        </div>
+        <button v-else class="btn-primary" @click="addToCart">В корзину</button>
       </div>
     </div>
 
@@ -68,6 +73,9 @@ export default {
     service() {
       return this.servicesStore.getCurrentService
     },
+    itemInCart() {
+      return this.cartStore.items.find(item => item.id === this.service?.id);
+    },
     getCurrentPrice() {
       const now = new Date()
       const hour = now.getHours()
@@ -111,6 +119,22 @@ export default {
     addToCart() {
       this.cartStore.addToCart(this.service)
       this.showToast('Услуга добавлена в корзину', 'success')
+    },
+    incrementQuantity() {
+      const item = this.itemInCart;
+      if (item) {
+        this.cartStore.updateQuantity(item.id, item.quantity + 1);
+      }
+    },
+    decrementQuantity() {
+      const item = this.itemInCart;
+      if (item) {
+        if (item.quantity > 1) {
+          this.cartStore.updateQuantity(item.id, item.quantity - 1);
+        } else {
+          this.cartStore.removeFromCart(item.id);
+        }
+      }
     },
   },
   created() {
@@ -198,16 +222,17 @@ export default {
 }
 
 .features li {
-  margin: 0.5rem 0;
-  padding-left: 1.5rem;
   position: relative;
+  padding-left: 2rem;
+  margin-bottom: 0.5rem;
 }
 
 .features li::before {
   content: '✓';
-  color: #28a745;
   position: absolute;
   left: 0;
+  color: #007bff;
+  font-weight: bold;
 }
 
 .pricing-table {
@@ -235,19 +260,21 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000;
 }
 
 .modal-content {
   background: white;
   padding: 2rem;
   border-radius: 8px;
-  position: relative;
-  width: 90%;
   max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  position: relative;
 }
 
 .close-button {
@@ -261,18 +288,76 @@ export default {
 }
 
 .btn-primary {
-  background: #1db954;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--accent-primary);
   color: white;
   border: none;
-  padding: 1rem 2rem;
   border-radius: 50px;
-  font-size: 1.1rem;
   cursor: pointer;
-  transition: background 0.3s ease;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  align-self: flex-start;
+  min-width: 150px;
+  text-align: center;
 }
 
 .btn-primary:hover {
-  background: #1ed760;
+  background-color: var(--accent-secondary);
+  transform: translateY(-2px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Стиль для кнопки с количеством в корзине */
+.btn-primary span {
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+/* Стили для управления количеством */
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  background-color: var(--accent-primary);
+  border-radius: 50px;
+  padding: 0.25rem;
+  width: max-content;
+}
+
+.quantity-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background-color: var(--accent-secondary);
+  color: white;
+  font-size: 1.2rem;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.quantity-btn:hover {
+  background-color: var(--accent-primary-dark, #0056b3);
+  transform: scale(1.05);
+}
+
+.quantity-btn:active {
+  transform: scale(0.95);
+}
+
+.quantity-display {
+  padding: 0 1rem;
+  font-weight: bold;
+  min-width: 30px;
+  text-align: center;
+  color: white;
+  font-size: 1.1rem;
 }
 
 .arrow {

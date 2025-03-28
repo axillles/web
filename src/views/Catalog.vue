@@ -73,6 +73,17 @@
       />
     </div>
 
+    <!-- Плавающая кнопка корзины -->
+    <transition name="fade">
+      <div v-if="isFiltersHidden && cartStore.totalItems > 0" class="floating-cart" @click="goToCart">
+        <div class="cart-icon">
+          <i class="fas fa-shopping-cart"></i>
+          <span class="cart-badge">{{ cartStore.totalItems }}</span>
+        </div>
+        <div class="cart-total">{{ cartStore.totalPrice }} руб</div>
+      </div>
+    </transition>
+
     <!-- Модальное окно заказа -->
     <div v-if="selectedService" class="modal">
       <div class="modal-content">
@@ -232,7 +243,10 @@ export default {
 
       this.cartStore.addToCart(service, params)
       this.showToast('Услуга добавлена в корзину', 'success')
-    }
+    },
+    goToCart() {
+      this.$router.push('/cart');
+    },
   },
   inject: ['showToast'],
 }
@@ -264,23 +278,29 @@ h1 {
 /* Анимации для плавного появления/исчезновения */
 .slide-fade-enter-active,
 .slide-fade-leave-active {
-  transition: all 0.4s ease;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: 500px;
+  overflow: hidden;
+  opacity: 1;
+  margin-bottom: 2rem;
 }
 
 .slide-fade-enter-from,
 .slide-fade-leave-to {
-  transform: translateY(-30px);
+  max-height: 0;
   opacity: 0;
+  margin-bottom: 0;
 }
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s;
+  transition: opacity 0.3s, transform 0.3s;
 }
 
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+  transform: translateY(20px);
 }
 
 .show-filters-btn {
@@ -307,7 +327,7 @@ h1 {
 }
 
 .has-top-margin {
-  margin-top: 3.5rem;
+  margin-top: 2rem;
 }
 
 .filters-content {
@@ -436,7 +456,7 @@ h1 {
   gap: 2rem;
   max-width: 1200px;
   margin: 0 auto;
-  transition: margin-top 0.3s ease;
+  transition: margin-top 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .service-card {
@@ -540,6 +560,66 @@ h1 {
 .modal-content h2 {
   color: var(--text-primary);
   margin-bottom: 1.5rem;
+}
+
+/* Плавающая кнопка корзины */
+.floating-cart {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: var(--accent-primary);
+  color: black;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  z-index: 100;
+}
+
+.floating-cart:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  background: var(--accent-secondary);
+}
+
+.floating-cart:active {
+  transform: translateY(-1px);
+}
+
+.cart-icon {
+  position: relative;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: black;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--error-color);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.cart-total {
+  font-weight: 600;
+  font-size: 1rem;
+  color: black;
 }
 
 @media (max-width: 768px) {

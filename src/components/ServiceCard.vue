@@ -6,7 +6,12 @@
       <p class="service-description">{{ truncatedDescription }}</p>
       <div class="service-price">от {{ service.price }} руб/час</div>
       <div class="service-actions">
-        <button class="btn-add-to-cart" @click="addToCart(service)">В корзину</button>
+        <div v-if="itemInCart" class="quantity-controls">
+          <button class="quantity-btn" @click="decrementQuantity">-</button>
+          <span class="quantity-display">{{ itemInCart.quantity }}</span>
+          <button class="quantity-btn" @click="incrementQuantity">+</button>
+        </div>
+        <button v-else class="btn-add-to-cart" @click="addToCart(service)">В корзину</button>
         <router-link :to="`/service/${service.id}`" class="btn-details">Подробнее</router-link>
       </div>
     </div>
@@ -43,6 +48,10 @@ export default {
         return words.slice(0, 10).join(' ') + '...';
       }
       return this.service.description;
+    },
+    itemInCart() {
+      const cartStore = useCartStore();
+      return cartStore.items.find(item => item.id === this.service.id);
     }
   },
   mounted() {
@@ -70,6 +79,24 @@ export default {
       }, params)
 
       this.$emit('added-to-cart', this.service)
+    },
+    incrementQuantity() {
+      const cartStore = useCartStore();
+      const item = this.itemInCart;
+      if (item) {
+        cartStore.updateQuantity(item.id, item.quantity + 1);
+      }
+    },
+    decrementQuantity() {
+      const cartStore = useCartStore();
+      const item = this.itemInCart;
+      if (item) {
+        if (item.quantity > 1) {
+          cartStore.updateQuantity(item.id, item.quantity - 1);
+        } else {
+          cartStore.removeFromCart(item.id);
+        }
+      }
     },
     closeModal() {
       this.showOrderModal = false
@@ -198,5 +225,47 @@ export default {
 
 .close-button:hover {
   color: var(--text-primary);
+}
+
+/* Стили для управления количеством */
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  background-color: var(--accent-primary);
+  border-radius: 50px;
+  padding: 0.25rem;
+  flex: 1;
+}
+
+.quantity-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background-color: var(--accent-secondary);
+  color: white;
+  font-size: 1rem;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.quantity-btn:hover {
+  background-color: var(--accent-primary-dark, #0056b3);
+  transform: scale(1.05);
+}
+
+.quantity-btn:active {
+  transform: scale(0.95);
+}
+
+.quantity-display {
+  padding: 0 0.5rem;
+  font-weight: bold;
+  flex: 1;
+  text-align: center;
+  color: white;
 }
 </style>
