@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/$1"
+      "destination": "/server/api/$1"
     },
     {
       "source": "/(.*)",
@@ -10,11 +10,15 @@
     }
   ],
   "functions": {
-    "api/**": {
+    "server/api/**": {
       "memory": 1024,
       "maxDuration": 10
     }
   },
+  "builds": [
+    { "src": "server/api/**/*.js", "use": "@vercel/node" },
+    { "src": "package.json", "use": "@vercel/static-build", "config": { "distDir": "dist" } }
+  ],
   "headers": [
     {
       "source": "/(.*)",
