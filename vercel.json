@@ -9,12 +9,6 @@
       "destination": "/index.html"
     }
   ],
-  "functions": {
-    "server/api/**": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  },
   "builds": [
     { "src": "server/api/**/*.js", "use": "@vercel/node" },
     { "src": "package.json", "use": "@vercel/static-build", "config": { "distDir": "dist" } }
