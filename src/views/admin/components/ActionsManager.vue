@@ -1,120 +1,146 @@
 <template>
-  <div class="promotions-manager">
-    <div class="promotions-header">
-      <h2>Управление промокодами</h2>
+  <div class="actions-manager">
+    <div class="actions-header">
+      <h2>Управление акциями</h2>
       <button class="add-btn" @click="showAddForm = true">
         <span class="material-icons">add</span>
-        Добавить промокод
+        Добавить акцию
       </button>
     </div>
 
-    <div class="promotions-table-container">
-      <table class="promotions-table">
+    <div class="actions-table-container">
+      <table class="actions-table">
         <thead>
           <tr>
-            <th>Код</th>
-            <th>Скидка</th>
-            <th>Мин. сумма</th>
-            <th>Макс. скидка</th>
+            <th>Изображение</th>
+            <th>Название</th>
+            <th>Старая цена</th>
+            <th>Новая цена</th>
+            <th>Ссылка</th>
             <th>Действия</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="promo in promocodes" :key="promo.id">
-            <td>{{ promo.code }}</td>
-            <td>{{ promo.discount_percent }}%</td>
-            <td>{{ formatPrice(promo.min_order_amount) }}</td>
-            <td>{{ formatPrice(promo.max_discount) }}</td>
+          <tr v-for="promotion in promotions" :key="promotion.id">
+            <td class="image-cell">
+              <img :src="promotion.image" :alt="promotion.title" class="thumb-image" />
+            </td>
+            <td>{{ promotion.title }}</td>
+            <td>{{ formatPrice(promotion.old_price) }}</td>
+            <td>{{ formatPrice(promotion.price) }}</td>
+            <td class="link-cell">{{ promotion.link }}</td>
             <td class="actions">
-              <button class="edit-btn" @click="editPromo(promo)">
+              <button class="edit-btn" @click="editPromotion(promotion)">
                 <span class="material-icons">edit</span>
               </button>
-              <button class="delete-btn" @click="confirmDelete(promo.id)">
+              <button class="delete-btn" @click="confirmDelete(promotion.id)">
                 <span class="material-icons">delete</span>
               </button>
             </td>
           </tr>
-          <tr v-if="promocodes.length === 0">
-            <td colspan="5" class="no-data">Нет промокодов</td>
+          <tr v-if="promotions.length === 0">
+            <td colspan="6" class="no-data">Нет акций</td>
           </tr>
         </tbody>
       </table>
     </div>
 
     <!-- Модальное окно добавления/редактирования -->
-    <div v-if="showAddForm || editingPromo" class="modal">
+    <div v-if="showAddForm || editingPromotion" class="modal">
       <div class="modal-content">
         <div class="modal-header">
-          <h3>{{ editingPromo ? 'Редактировать промокод' : 'Добавить промокод' }}</h3>
+          <h3>{{ editingPromotion ? 'Редактировать акцию' : 'Добавить акцию' }}</h3>
           <button class="close-btn" @click="closeForm">
             <span class="material-icons">close</span>
           </button>
         </div>
 
-        <form @submit.prevent="handleSubmit" class="promo-form">
+        <form @submit.prevent="handleSubmit" class="promotion-form">
           <div class="form-group">
-            <label>Промокод</label>
+            <label>Название акции</label>
             <input
-              v-model="formData.code"
+              v-model="formData.title"
               type="text"
               required
-              placeholder="Введите код"
-              pattern="[A-Za-z0-9]+"
-              title="Только буквы и цифры"
-              :maxlength="10"
-              style="text-transform: uppercase"
+              placeholder="Введите название акции"
             >
           </div>
 
           <div class="form-group">
-            <label>Процент скидки</label>
-            <input
-              v-model.number="formData.discount_percent"
-              type="number"
+            <label>Описание</label>
+            <textarea
+              v-model="formData.description"
               required
-              min="1"
-              max="100"
-              step="1"
-            >
+              placeholder="Введите описание акции"
+              rows="4"
+            ></textarea>
           </div>
 
           <div class="form-group">
-            <label>Минимальная сумма заказа</label>
+            <label>URL изображения</label>
             <input
-              v-model.number="formData.min_order_amount"
-              type="number"
+              v-model="formData.image"
+              type="url"
               required
-              min="0"
-              step="1"
+              placeholder="https://example.com/image.jpg"
             >
           </div>
 
+          <div class="image-preview" v-if="formData.image">
+            <img :src="formData.image" alt="Предпросмотр изображения">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group half">
+              <label>Старая цена</label>
+              <input
+                v-model.number="formData.old_price"
+                type="number"
+                required
+                min="0"
+                step="1"
+                placeholder="0"
+              >
+            </div>
+
+            <div class="form-group half">
+              <label>Новая цена</label>
+              <input
+                v-model.number="formData.price"
+                type="number"
+                required
+                min="0"
+                step="1"
+                placeholder="0"
+              >
+            </div>
+          </div>
+
           <div class="form-group">
-            <label>Максимальная скидка</label>
+            <label>Ссылка</label>
             <input
-              v-model.number="formData.max_discount"
-              type="number"
+              v-model="formData.link"
+              type="text"
               required
-              min="0"
-              step="1"
+              placeholder="/service/1 или /catalog"
             >
           </div>
 
           <button type="submit" class="submit-btn">
-            {{ editingPromo ? 'Сохранить' : 'Добавить' }}
+            {{ editingPromotion ? 'Сохранить' : 'Добавить' }}
           </button>
         </form>
       </div>
     </div>
 
     <!-- Модальное окно подтверждения удаления -->
-    <div v-if="promoToDelete" class="modal">
+    <div v-if="promotionToDelete" class="modal">
       <div class="modal-content confirm-delete">
         <h3>Подтверждение удаления</h3>
-        <p>Вы действительно хотите удалить этот промокод?</p>
+        <p>Вы действительно хотите удалить эту акцию?</p>
         <div class="confirm-actions">
-          <button class="btn-cancel" @click="promoToDelete = null">Отмена</button>
-          <button class="btn-confirm" @click="deletePromo">Удалить</button>
+          <button class="btn-cancel" @click="promotionToDelete = null">Отмена</button>
+          <button class="btn-confirm" @click="deletePromotion">Удалить</button>
         </div>
       </div>
     </div>
@@ -122,132 +148,131 @@
 </template>
 
 <script>
-import { supabase } from '@/lib/supabaseClient'
+import { supabase } from '@/config/supabase'
 
 export default {
-  name: 'PromotionsManager',
+  name: 'ActionsManager',
 
   data() {
     return {
-      promocodes: [],
+      promotions: [],
       showAddForm: false,
-      editingPromo: null,
-      promoToDelete: null,
+      editingPromotion: null,
+      promotionToDelete: null,
       formData: {
-        code: '',
-        discount_percent: 10,
-        min_order_amount: 1,
-        max_discount: 5000
+        title: '',
+        description: '',
+        image: '',
+        old_price: 0,
+        price: 0,
+        link: '/catalog'
       }
     }
   },
 
   mounted() {
-    this.fetchPromocodes()
+    this.fetchPromotions()
   },
 
   methods: {
-    async fetchPromocodes() {
+    async fetchPromotions() {
       try {
         const { data, error } = await supabase
-          .from('promocodes')
+          .from('promotions')
           .select('*')
           .order('created_at', { ascending: false })
 
         if (error) throw error
 
-        this.promocodes = data || []
+        this.promotions = data || []
       } catch (error) {
-        console.error('Error fetching promocodes:', error)
-        this.showToast('Ошибка при загрузке промокодов', 'error')
+        console.error('Error fetching promotions:', error)
+        this.showToast('Ошибка при загрузке акций', 'error')
       }
     },
 
-    editPromo(promo) {
-      this.editingPromo = promo
-      this.formData = { ...promo }
+    editPromotion(promotion) {
+      this.editingPromotion = promotion
+      this.formData = { ...promotion }
       this.showAddForm = true
     },
 
     closeForm() {
       this.showAddForm = false
-      this.editingPromo = null
+      this.editingPromotion = null
       this.formData = {
-        code: '',
-        discount_percent: 10,
-        min_order_amount: 1000,
-        max_discount: 5000
+        title: '',
+        description: '',
+        image: '',
+        old_price: 0,
+        price: 0,
+        link: '/catalog'
       }
     },
 
     async handleSubmit() {
       try {
-        if (!this.formData.code) {
-          throw new Error('Введите код промокода')
+        if (!this.formData.title) {
+          throw new Error('Введите название акции')
         }
 
-        const promoData = {
-          code: this.formData.code.toUpperCase(),
-          discount_percent: this.formData.discount_percent || 0,
-          min_order_amount: this.formData.min_order_amount || 0,
-          max_discount: this.formData.max_discount || 0
+        if (!this.formData.image.startsWith('http')) {
+          throw new Error('URL изображения должен начинаться с http:// или https://')
         }
 
-        if (this.editingPromo) {
+        const promotionData = {
+          title: this.formData.title,
+          description: this.formData.description,
+          image: this.formData.image,
+          old_price: this.formData.old_price || 0,
+          price: this.formData.price || 0,
+          link: this.formData.link || '/catalog'
+        }
+
+        if (this.editingPromotion) {
           const { error } = await supabase
-            .from('promocodes')
-            .update(promoData)
-            .eq('id', this.editingPromo.id)
+            .from('promotions')
+            .update(promotionData)
+            .eq('id', this.editingPromotion.id)
 
           if (error) throw error
-          this.showToast('Промокод успешно обновлен', 'success')
+          this.showToast('Акция успешно обновлена', 'success')
         } else {
-          // Проверяем, не существует ли уже такой код
-          const { data: existingPromo } = await supabase
-            .from('promocodes')
-            .select('id')
-            .eq('code', promoData.code)
-            .single()
-
-          if (existingPromo) {
-            throw new Error('Такой промокод уже существует')
-          }
-
           const { error } = await supabase
-            .from('promocodes')
-            .insert([promoData])
+            .from('promotions')
+            .insert([promotionData])
 
           if (error) throw error
-          this.showToast('Новый промокод добавлен', 'success')
+          this.showToast('Новая акция добавлена', 'success')
         }
 
-        await this.fetchPromocodes()
+        await this.fetchPromotions()
         this.closeForm()
       } catch (error) {
-        console.error('Error submitting promocode:', error)
-        this.showToast(error.message || 'Ошибка при сохранении промокода', 'error')
+        console.error('Error submitting promotion:', error)
+        this.showToast(error.message || 'Ошибка при сохранении акции', 'error')
       }
     },
 
-    confirmDelete(promoId) {
-      this.promoToDelete = promoId
+    confirmDelete(promotionId) {
+      this.promotionToDelete = promotionId
     },
 
-    async deletePromo() {
+    async deletePromotion() {
       try {
         const { error } = await supabase
-          .from('promocodes')
+          .from('promotions')
           .delete()
-          .eq('id', this.promoToDelete)
+          .eq('id', this.promotionToDelete)
 
         if (error) throw error
 
-        this.promoToDelete = null
-        await this.fetchPromocodes()
-        this.showToast('Промокод удален', 'success')
+        this.promotionToDelete = null
+        await this.fetchPromotions()
+        this.showToast('Акция удалена', 'success')
       } catch (error) {
-        console.error('Error deleting promocode:', error)
-        this.showToast('Ошибка при удалении промокода', 'error')
+        console.error('Error deleting promotion:', error)
+        this.showToast('Ошибка при удалении акции', 'error')
       }
     },
 
@@ -268,19 +293,19 @@ export default {
 </script>
 
 <style scoped>
-.promotions-manager {
+.actions-manager {
   padding: 1.5rem;
   width: 100%;
 }
 
-.promotions-header {
+.actions-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
 }
 
-.promotions-header h2 {
+.actions-header h2 {
   color: var(--text-primary);
   margin: 0;
 }
@@ -303,29 +328,47 @@ export default {
   background: var(--accent-secondary);
 }
 
-.promotions-table-container {
+.actions-table-container {
   overflow-x: auto;
   background: var(--bg-secondary);
   border-radius: 8px;
   box-shadow: var(--card-shadow);
 }
 
-.promotions-table {
+.actions-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.promotions-table th,
-.promotions-table td {
+.actions-table th,
+.actions-table td {
   padding: 1rem;
   text-align: left;
   border-bottom: 1px solid var(--border-color);
 }
 
-.promotions-table th {
+.actions-table th {
   background: var(--bg-elevated);
   color: var(--text-primary);
   font-weight: 500;
+}
+
+.image-cell {
+  width: 80px;
+}
+
+.thumb-image {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.link-cell {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .actions {
@@ -410,7 +453,7 @@ export default {
 }
 
 /* Форма */
-.promo-form {
+.promotion-form {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -422,12 +465,22 @@ export default {
   gap: 0.5rem;
 }
 
+.form-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.form-group.half {
+  flex: 1;
+}
+
 .form-group label {
   color: var(--text-primary);
   font-weight: 500;
 }
 
-.form-group input {
+.form-group input,
+.form-group textarea {
   padding: 0.75rem;
   background: var(--bg-elevated);
   border: 1px solid var(--border-color);
@@ -436,9 +489,22 @@ export default {
   font-size: 1rem;
 }
 
-.form-group input:focus {
+.form-group input:focus,
+.form-group textarea:focus {
   outline: none;
   border-color: var(--accent-primary);
+}
+
+.image-preview {
+  margin-top: -0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.image-preview img {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 4px;
+  object-fit: contain;
 }
 
 .submit-btn {
@@ -507,7 +573,12 @@ export default {
 }
 
 @media (max-width: 768px) {
-  .promotions-header {
+  .form-row {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .actions-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;

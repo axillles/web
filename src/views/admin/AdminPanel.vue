@@ -17,7 +17,8 @@
     <div class="tab-content">
       <OrdersManager v-if="currentTab === 'orders'" />
       <OrdersStatistics v-if="currentTab === 'statistics'" />
-      <PromotionsManager v-if="currentTab === 'promotions'" />
+      <PromotionsManager v-if="currentTab === 'promocodes'" />
+      <ActionsManager v-if="currentTab === 'actions'" />
       <ServicesManager v-if="currentTab === 'services'" />
       <UsersManager v-if="currentTab === 'users'" />
     </div>
@@ -28,6 +29,7 @@
 import OrdersManager from './components/OrdersManager.vue'
 import OrdersStatistics from './components/OrdersStatistics.vue'
 import PromotionsManager from './components/PromotionsManager.vue'
+import ActionsManager from './components/ActionsManager.vue'
 import ServicesManager from './components/ServicesManager.vue'
 import UsersManager from './components/UsersManager.vue'
 
@@ -37,6 +39,7 @@ export default {
     OrdersManager,
     OrdersStatistics,
     PromotionsManager,
+    ActionsManager,
     ServicesManager,
     UsersManager
   },
@@ -46,7 +49,8 @@ export default {
       tabs: [
         { id: 'orders', name: 'Заказы' },
         { id: 'statistics', name: 'Статистика' },
-        { id: 'promotions', name: 'Акции' },
+        { id: 'promocodes', name: 'Промокоды' },
+        { id: 'actions', name: 'Акции' },
         { id: 'services', name: 'Услуги' },
         { id: 'users', name: 'Пользователи' }
       ]

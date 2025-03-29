@@ -628,42 +628,119 @@ h1 {
   }
 
   .filters-content {
-    padding: 0 1rem;
-  }
-
-  .categories {
-    gap: 0.5rem;
-  }
-
-  .category-button {
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-  }
-
-  .cart-summary {
+    padding: 0.75rem;
     flex-direction: column;
-    padding: 1rem;
-  }
-
-  .sort-button {
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
+    gap: 0.75rem;
   }
 
   .search-container {
-    padding: 0 1rem;
+    width: 100%;
   }
 
   .search-input {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
+    width: 100%;
+  }
+
+  .categories {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .category-button {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    min-width: unset;
+    flex: 0 0 auto;
+  }
+
+  .sort-controls {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .sort-button {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    min-width: unset;
+  }
+
+  .services-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+  }
+
+  .cart-summary {
+    flex-direction: column;
+    padding: 0.75rem;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .btn-cart {
+    width: 100%;
+    text-align: center;
   }
 
   .show-filters-btn {
     top: 0.5rem;
     right: 0.5rem;
     padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+
+  .floating-cart {
+    bottom: 1rem;
+    right: 1rem;
+    padding: 0.5rem 1rem;
     font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .catalog h1 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .services-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .category-button,
+  .sort-button {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .services-grid.has-top-margin {
+    margin-top: 1.5rem;
+  }
+
+  .modal-content {
+    padding: 1rem;
+    width: 95%;
+  }
+}
+
+/* Улучшение адаптивности для планшетов */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .services-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+
+  .filters-content {
+    padding: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .search-container {
+    width: 100%;
+    margin-bottom: 0.5rem;
   }
 }
 

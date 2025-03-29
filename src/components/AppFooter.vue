@@ -288,4 +288,59 @@ export default {
 .close-modal:hover {
   background: var(--bg-secondary);
 }
+
+@media (max-width: 768px) {
+  .footer-content {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .footer-section h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .social-link {
+    min-width: 100px;
+    height: 36px;
+    font-size: 0.9rem;
+  }
+
+  .footer {
+    padding: 1.5rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    text-align: center;
+  }
+
+  .footer-section h3 {
+    font-size: 1rem;
+  }
+
+  .social-links {
+    justify-content: center;
+  }
+
+  .footer {
+    padding: 1rem;
+  }
+
+  .footer-bottom {
+    margin-top: 1.5rem;
+    font-size: 0.8rem;
+  }
+
+  .modal-content {
+    padding: 1.5rem;
+  }
+
+  .phone-number {
+    font-size: 1.2rem;
+  }
+}
 </style>

@@ -346,7 +346,6 @@ export default {
         if (!isFromCart) {
           let serviceInfo = '';
           let serviceType = '';
-          let cartStore = null;
 
           // Определяем тип заказа и формируем информацию
           // Одиночная услуга
@@ -449,21 +448,15 @@ ${this.formData.comment ? `💬 Комментарий:\n${this.formData.comment
 
 <style>
 .order-form {
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 1rem;
-  width: 100%;
-}
-
-h3 {
-  color: var(--text-primary);
-  margin-top: 0;
-  margin-bottom: 1rem; /* Уменьшаем отступ */
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
 .form-group {
-  margin-bottom: 1rem; /* Уменьшаем отступ */
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .form-group label {
@@ -475,11 +468,17 @@ h3 {
 
 .form-control {
   width: 100%;
-  padding: 0.5rem 0.75rem; /* Уменьшаем padding */
+  padding: 0.75rem;
   background: var(--bg-elevated);
   border: 1px solid var(--border-color);
   border-radius: 4px;
   color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.form-control:focus {
+  border-color: var(--accent-primary);
+  outline: none;
 }
 
 textarea.form-control {
@@ -623,7 +622,7 @@ input[type="datetime-local"] {
 }
 
 input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-  filter: invert(1);
+  filter: var(--invert-value, invert(var(--invert-value)));
   cursor: pointer;
 }
 
@@ -650,5 +649,84 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: var(--card-shadow);
+}
+
+@media (max-width: 768px) {
+  .order-form {
+    gap: 1rem;
+  }
+
+  .form-group {
+    gap: 0.4rem;
+  }
+
+  .form-control {
+    padding: 0.6rem;
+    font-size: 0.95rem;
+  }
+
+  .btn-primary {
+    padding: 0.7rem 1.25rem;
+  }
+
+  label {
+    font-size: 0.95rem;
+  }
+
+  .payment-buttons {
+    flex-wrap: wrap;
+  }
+
+  .payment-button {
+    flex: 1 0 calc(50% - 0.5rem);
+    font-size: 0.85rem;
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .order-form {
+    gap: 0.75rem;
+  }
+
+  .form-group {
+    gap: 0.3rem;
+  }
+
+  .form-control {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  label {
+    font-size: 0.9rem;
+  }
+
+  .btn-primary {
+    padding: 0.6rem 1rem;
+    font-size: 0.95rem;
+  }
+
+  .payment-button {
+    flex: 1 0 100%;
+    margin-bottom: 0.25rem;
+  }
+
+  .promo-input {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .btn-apply-promo {
+    width: 100%;
+    padding: 0.6rem;
+  }
+
+  .modal-content {
+    width: 95%;
+    max-width: none;
+    max-height: 90vh;
+    padding: 1rem;
+  }
 }
 </style>

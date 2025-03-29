@@ -113,11 +113,14 @@ export default {
 <style scoped>
 .service-card {
   position: relative;
-  padding: 2rem;
+  padding: 1.5rem;
   background: var(--bg-secondary);
   border-radius: 8px;
   box-shadow: var(--card-shadow);
   transition: var(--transition-standard);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .service-card:hover {
@@ -128,7 +131,7 @@ export default {
 
 .service-image {
   width: 100%;
-  height: 200px;
+  height: 180px;
   object-fit: contain;
   border-radius: 8px;
   margin-bottom: 1rem;
@@ -137,38 +140,41 @@ export default {
 .service-content {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
+  flex: 1;
 }
 
-.service-title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
+.service-content h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
   color: var(--text-primary);
+  margin: 0;
 }
 
 .service-description {
   color: var(--text-secondary);
-  margin-bottom: 1.5rem;
-  line-height: 1.6;
+  line-height: 1.5;
+  flex: 1;
+  font-size: 0.95rem;
 }
 
 .service-price {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: bold;
   color: var(--accent-primary);
-  margin-bottom: 1.5rem;
+  margin: 0.5rem 0;
 }
 
 .service-actions {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
+  margin-top: auto;
 }
 
 .btn-add-to-cart,
 .btn-details {
   flex: 1;
-  padding: 0.75rem;
+  padding: 0.75rem 0.5rem;
   border: none;
   border-radius: 50px;
   cursor: pointer;
@@ -176,6 +182,7 @@ export default {
   transition: var(--transition-standard);
   text-align: center;
   text-decoration: none;
+  font-size: 0.95rem;
 }
 
 .btn-add-to-cart {
@@ -267,5 +274,81 @@ export default {
   flex: 1;
   text-align: center;
   color: white;
+}
+
+@media (max-width: 768px) {
+  .service-card {
+    padding: 1.25rem;
+  }
+
+  .service-image {
+    height: 160px;
+  }
+
+  .service-content {
+    gap: 0.5rem;
+  }
+
+  .service-content h3 {
+    font-size: 1.1rem;
+  }
+
+  .service-description {
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+
+  .service-price {
+    font-size: 1.1rem;
+  }
+
+  .service-actions {
+    gap: 0.5rem;
+  }
+
+  .btn-add-to-cart,
+  .btn-details {
+    padding: 0.6rem 0.4rem;
+    font-size: 0.9rem;
+  }
+
+  .quantity-controls {
+    padding: 0.2rem;
+  }
+
+  .quantity-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .service-card {
+    padding: 1rem;
+  }
+
+  .service-image {
+    height: 140px;
+  }
+
+  .service-content h3 {
+    font-size: 1rem;
+  }
+
+  .service-description {
+    font-size: 0.85rem;
+  }
+
+  .service-price {
+    font-size: 1rem;
+    margin: 0.25rem 0;
+  }
+
+  .btn-add-to-cart,
+  .btn-details {
+    padding: 0.5rem 0.3rem;
+    font-size: 0.8rem;
+  }
 }
 </style>

@@ -5,7 +5,7 @@ import { ref, watch, onMounted, nextTick } from 'vue'
  * @returns {Object} - Методы и состояние для работы с темой
  */
 export function useTheme() {
-  const currentTheme = ref('dark')
+  const currentTheme = ref('light')
 
   /**
    * Применяет текущую тему к документу
@@ -67,7 +67,7 @@ export function useTheme() {
 
   // При монтировании компонента загружаем тему из localStorage
   onMounted(() => {
-    const savedTheme = localStorage.getItem('theme') || 'dark'
+    const savedTheme = localStorage.getItem('theme') || 'light'
     applyTheme(savedTheme)
     setupStorageListener()
 

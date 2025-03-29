@@ -1,39 +1,48 @@
 <template>
   <div id="app">
     <nav class="navbar">
-      <div class="logo">NKL</div>
-      <router-link to="/">Главная</router-link>
-      <router-link to="/catalog">Каталог</router-link>
-      <router-link to="/calculator">Калькулятор</router-link>
-      <router-link to="/about">О нас</router-link>
+      <div class="navbar-top">
+        <div class="logo">NKL</div>
 
-      <div class="contact-info">
-        <a href="tel:+375336052984" class="phone-number">+375 33 605-29-84</a>
-        <div class="messenger-links">
-          <a href="viber://chat?number=%2B375336052984" target="_blank">
-            <img src="/Icons/viber.png" alt="Viber" class="messenger-icon" />
-          </a>
-          <a href="https://wa.me/375336052984" target="_blank">
-            <img src="/Icons/whatsapp.png" alt="WhatsApp" class="messenger-icon" />
-          </a>
+        <!-- Навигационные ссылки в одну строку -->
+        <div class="nav-links">
+          <router-link to="/">Главная</router-link>
+          <router-link to="/catalog">Каталог</router-link>
+          <router-link to="/calculator">Калькулятор</router-link>
+          <router-link to="/about">О нас</router-link>
         </div>
-      </div>
 
-      <div class="auth-buttons">
-        <ThemeToggle />
-        <template v-if="authStore.isAuthenticated">
-          <router-link v-if="authStore.isAdmin" to="/admin" class="admin-link">
-            Админ-панель
-          </router-link>
-          <router-link to="/profile" class="profile-button">
-            <img
-              :src="authStore.user?.user_metadata?.avatar_url || '/smallanonim.jpg'"
-              alt="Профиль"
-              class="profile-avatar"
-            />
-          </router-link>
-        </template>
-        <button v-else @click="showAuthModal = true" class="btn-login">Войти</button>
+        <!-- Контакты и профиль (на десктопе в одной строке, на телефоне - во второй) -->
+        <div class="navbar-end">
+          <div class="contact-info">
+            <a href="tel:+375336052984" class="phone-number">+375 33 605-29-84</a>
+            <div class="messenger-links">
+              <a href="viber://chat?number=%2B375336052984" target="_blank">
+                <img src="/Icons/viber.png" alt="Viber" class="messenger-icon" />
+              </a>
+              <a href="https://wa.me/375336052984" target="_blank">
+                <img src="/Icons/whatsapp.png" alt="WhatsApp" class="messenger-icon" />
+              </a>
+            </div>
+          </div>
+
+          <div class="auth-buttons">
+            <ThemeToggle />
+            <template v-if="authStore.isAuthenticated">
+              <router-link v-if="authStore.isAdmin" to="/admin" class="admin-link">
+                Админ-панель
+              </router-link>
+              <router-link to="/profile" class="profile-button">
+                <img
+                  :src="authStore.user?.user_metadata?.avatar_url || '/smallanonim.jpg'"
+                  alt="Профиль"
+                  class="profile-avatar"
+                />
+              </router-link>
+            </template>
+            <button v-else @click="showAuthModal = true" class="btn-login">Войти</button>
+          </div>
+        </div>
       </div>
     </nav>
 
@@ -68,10 +77,9 @@ export default {
   setup() {
     const { currentTheme, toggleTheme } = useTheme()
     const authStore = useAuthStore()
-    const showAuth = ref(false)
+    const showAuthModal = ref(false)
     const isAuthenticating = ref(false)
     const toastRef = ref(null)
-    const isNavOpen = ref(false)
 
     // Предоставляем метод для дочерних компонентов
     provide('showToast', (message, type = 'info') => {
@@ -92,16 +100,12 @@ export default {
       }
     })
 
-    const handleShowAuth = () => {
-      showAuth.value = true
-    }
-
-    const handleCloseAuth = () => {
-      showAuth.value = false
+    const handleModalClose = () => {
+      showAuthModal.value = false
     }
 
     const handleAuthSuccess = () => {
-      showAuth.value = false
+      showAuthModal.value = false
       if (toastRef.value) {
         toastRef.value.showToast('Вы успешно вошли!', 'success')
       }
@@ -120,23 +124,21 @@ export default {
       }
     }
 
-    const toggleNav = () => {
-      isNavOpen.value = !isNavOpen.value
+    const handleCookieConsent = () => {
+      // Обработка события согласия с cookie
     }
 
     return {
       currentTheme,
       toggleTheme,
-      showAuth,
-      handleShowAuth,
-      handleCloseAuth,
+      showAuthModal,
+      handleModalClose,
       handleAuthSuccess,
       isAuthenticating,
       toastRef,
       authStore,
       handleLogout,
-      isNavOpen,
-      toggleNav
+      handleCookieConsent
     }
   }
 }
@@ -157,30 +159,50 @@ body {
 
 /* Стили навигации */
 .navbar {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-  padding: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   position: relative;
   z-index: 100;
+  background: var(--bg-secondary);
+}
+
+.navbar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  flex-wrap: nowrap;
+}
+
+.navbar-end {
+  display: flex;
+  align-items: center;
+  gap: 2rem;  /* Увеличенный промежуток для десктопов */
+}
+
+/* Навигационные ссылки */
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1rem;  /* Увеличенный промежуток для десктопов */
+  margin: 0 2rem;  /* Увеличенный промежуток для десктопов */
 }
 
 .logo {
   font-size: 1.5rem;
   font-weight: bold;
-  margin-right: 2rem;
   color: var(--accent-primary);
+  flex-shrink: 0;
+  margin-right: 1rem;
 }
 
 .navbar a {
   display: inline-block;
-  margin-right: 1rem;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1rem;  /* Увеличенный padding для десктопов */
   text-decoration: none;
   color: var(--text-secondary);
   border-radius: 4px;
   transition: all 0.3s ease;
+  white-space: nowrap;
 }
 
 .navbar a:hover {
@@ -194,27 +216,10 @@ body {
   font-weight: 500;
 }
 
-/* Общие стили для контента */
-h1 {
-  margin-bottom: 1.5rem;
-  font-size: 2rem;
-}
-
-h2 {
-  margin-bottom: 1rem;
-  font-size: 1.5rem;
-}
-
-p {
-  margin-bottom: 1rem;
-}
-
 .contact-info {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-left: auto;
-  margin-right: 1rem;
+  gap: 0.75rem;  /* Увеличенный промежуток для десктопов */
   white-space: nowrap;
 }
 
@@ -233,7 +238,7 @@ p {
 
 .messenger-links {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.75rem;  /* Увеличенный промежуток для десктопов */
 }
 
 .messenger-icon {
@@ -249,17 +254,18 @@ p {
 .auth-buttons {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.75rem;  /* Увеличенный промежуток для десктопов */
 }
 
 .btn-login,
 .btn-logout {
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1rem;  /* Увеличенный padding для десктопов */
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9rem;
   transition: all 0.3s ease;
+  white-space: nowrap;
 }
 
 .btn-login {
@@ -314,96 +320,58 @@ p {
   color: white !important;
 }
 
-/* Стили для кнопок карусели */
-.carousel-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
-.carousel-nav:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.carousel-nav.prev {
-  left: 20px;
-}
-
-.carousel-nav.next {
-  right: 20px;
-}
-
-/* Стили для иконок стрелок */
-.carousel-nav svg {
-  width: 20px;
-  height: 20px;
-  fill: #ffffff;
-  transition: fill 0.3s ease;
-}
-
-.carousel-nav:hover svg {
-  fill: #1db954;
-}
-
+/* Адаптивные стили */
 @media (max-width: 1024px) {
-  .navbar {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.75rem;
-    padding: 0.75rem 0.5rem;
+  .navbar-top {
+    padding: 0.65rem 0.85rem;
   }
 
   .logo {
-    margin-right: 1rem;
+    font-size: 1.3rem;
   }
 
   .navbar a {
-    margin-right: 0.5rem;
-    padding: 0.4rem 0.75rem;
-    font-size: 0.9rem;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.95rem;
   }
 
-  .contact-info {
-    margin: 0.5rem auto;
-    order: 2;
-    flex-direction: column;
-    align-items: center;
+  .nav-links {
+    gap: 0.75rem;
+    margin: 0 1.5rem;
+  }
+
+  .navbar-end {
+    gap: 1.5rem;
   }
 
   .phone-number {
     font-size: 0.9rem;
   }
 
-  .auth-buttons {
-    order: 3;
-    margin: 0 auto;
+  .btn-login {
+    padding: 0.45rem 0.85rem;
+    font-size: 0.85rem;
   }
 
   .admin-link {
-    font-size: 0.8rem;
-    padding: 0.3rem 0.6rem;
-  }
-
-  .btn-login {
+    padding: 0.35rem 0.6rem;
     font-size: 0.85rem;
-    padding: 0.4rem 0.8rem;
   }
 }
 
-@media (max-width: 480px) {
-  .navbar {
-    padding: 0.5rem 0.25rem;
-    gap: 0.5rem;
+@media (max-width: 768px) {
+  /* На мобильных устройствах делаем навигацию двухстрочной */
+  .navbar-top {
+    flex-wrap: wrap;
+    padding: 0.5rem;
+  }
+
+  .navbar-end {
+    width: 100%;
+    justify-content: center;
+    margin-top: 0.5rem;
+    order: 2;
+    gap: 1rem;
   }
 
   .logo {
@@ -411,9 +379,97 @@ p {
     margin-right: 0.5rem;
   }
 
+  .nav-links {
+    flex: 1;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 0;
+  }
+
   .navbar a {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.9rem;
+  }
+
+  .phone-number {
+    font-size: 0.85rem;
+  }
+
+  .messenger-links {
+    gap: 0.5rem;
+  }
+
+  .messenger-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .btn-login {
+    padding: 0.35rem 0.65rem;
     font-size: 0.8rem;
+  }
+
+  .admin-link {
+    padding: 0.35rem 0.55rem;
+    font-size: 0.8rem;
+  }
+
+  .profile-avatar {
+    width: 28px;
+    height: 28px;
+  }
+
+  .auth-buttons {
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-top {
+    padding: 0.45rem 0.4rem 0.3rem 0.4rem;
+  }
+
+  .navbar-end {
+    margin-top: 0.35rem;
+    gap: 0.65rem;
+  }
+
+  .logo {
+    font-size: 1.1rem;
+    margin-right: 0.25rem;
+  }
+
+  .navbar a {
+    padding: 0.3rem 0.45rem;
+    font-size: 0.8rem;
+  }
+
+  .nav-links {
+    gap: 0.25rem;
+  }
+
+  .admin-link {
+    padding: 0.25rem 0.4rem;
+    font-size: 0.75rem;
+  }
+
+  .auth-buttons {
+    gap: 0.35rem;
+  }
+
+  .messenger-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .messenger-links {
+    gap: 0.25rem;
+  }
+
+  .btn-login {
     padding: 0.3rem 0.5rem;
+    font-size: 0.75rem;
   }
 }
 </style>
+
