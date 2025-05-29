@@ -77,17 +77,23 @@
           </div>
 
           <div class="form-group">
-            <label>URL изображения</label>
-            <input
-              v-model="formData.image"
-              type="url"
-              required
-              placeholder="https://example.com/image.jpg"
-            >
-          </div>
-
-          <div class="image-preview" v-if="formData.image">
-            <img :src="formData.image" alt="Предпросмотр изображения">
+            <label>Изображение</label>
+            <div class="image-upload">
+              <input
+                type="file"
+                @change="handleImageUpload"
+                accept="image/*"
+                :required="!editingPromotion && !formData.image"
+                ref="fileInput"
+              >
+              <small class="help-text">Максимальный размер: 5MB</small>
+            </div>
+            <div v-if="formData.image" class="image-preview">
+              <img :src="formData.image" :alt="formData.title">
+              <button type="button" class="remove-image" @click="removeImage">
+                <span class="material-icons">close</span>
+              </button>
+            </div>
           </div>
 
           <div class="form-row">
@@ -126,8 +132,8 @@
             >
           </div>
 
-          <button type="submit" class="submit-btn">
-            {{ editingPromotion ? 'Сохранить' : 'Добавить' }}
+          <button type="submit" class="submit-btn" :disabled="isUploading">
+            {{ isUploading ? 'Загрузка...' : (editingPromotion ? 'Сохранить' : 'Добавить') }}
           </button>
         </form>
       </div>
@@ -166,7 +172,8 @@ export default {
         old_price: 0,
         price: 0,
         link: '/catalog'
-      }
+      },
+      isUploading: false
     }
   },
 
@@ -210,16 +217,67 @@ export default {
       }
     },
 
+    async handleImageUpload(event) {
+      const file = event.target.files[0]
+      if (!file) return
+
+      // Проверка размера файла (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        this.showToast('Размер файла не должен превышать 5MB', 'error')
+        // Очищаем input
+        event.target.value = null;
+        return
+      }
+
+      // Проверка типа файла
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
+      if (!allowedTypes.includes(file.type)) {
+        this.showToast('Поддерживаются только форматы JPG, PNG и WEBP', 'error')
+         // Очищаем input
+        event.target.value = null;
+        return
+      }
+
+      try {
+        this.isUploading = true
+        const fileExt = file.name.split('.').pop()
+        const fileName = `${Math.random()}.${fileExt}`
+        const filePath = `promotions/${fileName}`
+
+        const { error: uploadError } = await supabase.storage
+          .from('images')
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false
+          })
+
+        if (uploadError) throw uploadError
+
+        const { data } = supabase.storage.from('images').getPublicUrl(filePath)
+        this.formData.image = data.publicUrl
+      } catch (error) {
+        console.error('Error uploading image:', error)
+        this.showToast('Ошибка при загрузке изображения', 'error')
+        this.removeImage()
+      } finally {
+        this.isUploading = false
+      }
+    },
+    removeImage() {
+      this.formData.image = ''
+      // Очищаем input type="file"
+      if (this.$refs.fileInput) {
+        this.$refs.fileInput.value = ''
+      }
+    },
     async handleSubmit() {
       try {
         if (!this.formData.title) {
           throw new Error('Введите название акции')
         }
-
-        if (!this.formData.image.startsWith('http')) {
-          throw new Error('URL изображения должен начинаться с http:// или https://')
+        if (!this.formData.image) {
+          throw new Error('Загрузите изображение')
         }
-
         const promotionData = {
           title: this.formData.title,
           description: this.formData.description,
@@ -296,6 +354,7 @@ export default {
 .actions-manager {
   padding: 1.5rem;
   width: 100%;
+  color: #333333;
 }
 
 .actions-header {
@@ -306,7 +365,7 @@ export default {
 }
 
 .actions-header h2 {
-  color: var(--text-primary);
+  color: #1db954;
   margin: 0;
 }
 
@@ -314,25 +373,28 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: var(--accent-primary);
+  background: #1db954;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: 4px;
   cursor: pointer;
   font-size: 1rem;
-  transition: var(--transition-standard);
+  transition: all 0.3s ease;
 }
 
 .add-btn:hover {
-  background: var(--accent-secondary);
+  background: #1ed760;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .actions-table-container {
   overflow-x: auto;
-  background: var(--bg-secondary);
+  background: #ffffff;
   border-radius: 8px;
-  box-shadow: var(--card-shadow);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e0e0e0;
 }
 
 .actions-table {
@@ -344,13 +406,17 @@ export default {
 .actions-table td {
   padding: 1rem;
   text-align: left;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .actions-table th {
-  background: var(--bg-elevated);
-  color: var(--text-primary);
+  background: #f5f5f5;
+  color: #333333;
   font-weight: 500;
+}
+
+.actions-table td {
+    color: #333333;
 }
 
 .image-cell {
@@ -362,6 +428,7 @@ export default {
   height: 60px;
   object-fit: cover;
   border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .link-cell {
@@ -376,29 +443,32 @@ export default {
 }
 
 .edit-btn, .delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 4px;
-  transition: var(--transition-standard);
+  transition: all 0.3s ease;
 }
 
 .edit-btn {
-  color: var(--info-color);
+  color: #1db954;
 }
 
 .delete-btn {
-  color: var(--error-color);
+  color: #ff4444;
 }
 
 .edit-btn:hover, .delete-btn:hover {
-  background: var(--bg-elevated);
+  background: #e0e0e0;
 }
 
 .no-data {
   text-align: center;
-  color: var(--text-secondary);
+  color: #666666;
   padding: 2rem !important;
 }
 
@@ -417,14 +487,14 @@ export default {
 }
 
 .modal-content {
-  background: var(--bg-secondary);
+  background: #ffffff;
   padding: 2rem;
   border-radius: 8px;
   width: 90%;
   max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: var(--card-shadow);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .modal-header {
@@ -436,20 +506,27 @@ export default {
 
 .modal-header h3 {
   margin: 0;
-  color: var(--text-primary);
+  color: #333333;
 }
 
 .close-btn {
   background: none;
   border: none;
-  color: var(--text-secondary);
+  color: #666666;
   cursor: pointer;
   font-size: 1.5rem;
-  transition: var(--transition-standard);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
 }
 
 .close-btn:hover {
-  color: var(--text-primary);
+  background: #f5f5f5;
+  color: #333333;
 }
 
 /* Форма */
@@ -475,52 +552,106 @@ export default {
 }
 
 .form-group label {
-  color: var(--text-primary);
+  color: #333333;
   font-weight: 500;
 }
 
 .form-group input,
 .form-group textarea {
   padding: 0.75rem;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-color);
+  background: #f9f9f9;
+  border: 1px solid #e0e0e0;
   border-radius: 4px;
-  color: var(--text-primary);
+  color: #333333;
   font-size: 1rem;
+  transition: all 0.3s ease;
 }
 
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: var(--accent-primary);
+  border-color: #1db954;
+  box-shadow: 0 0 0 2px rgba(29, 185, 84, 0.1);
+}
+
+.image-upload input[type="file"] {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background: #f9f9f9;
+  color: #333333;
+}
+
+.help-text {
+  display: block;
+  margin-top: 0.5rem;
+  color: #666666;
+  font-size: 0.8rem;
 }
 
 .image-preview {
-  margin-top: -0.5rem;
+  margin-top: 0.5rem;
   margin-bottom: 0.5rem;
+  position: relative;
+  width: 100%;
+  height: 200px;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .image-preview img {
-  max-width: 100%;
-  max-height: 200px;
-  border-radius: 4px;
-  object-fit: contain;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.remove-image {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #ff4444;
+  transition: all 0.3s ease;
+}
+
+.remove-image:hover {
+  background: #ff4444;
+  color: white;
 }
 
 .submit-btn {
-  background: var(--accent-primary);
+  background: #1db954;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: 4px;
   cursor: pointer;
   font-size: 1rem;
-  transition: var(--transition-standard);
+  transition: all 0.3s ease;
   margin-top: 1rem;
 }
 
 .submit-btn:hover {
-  background: var(--accent-secondary);
+  background: #1ed760;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.submit-btn:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 /* Подтверждение удаления */
@@ -531,11 +662,12 @@ export default {
 
 .confirm-delete h3 {
   margin-bottom: 1rem;
+  color: #333333;
 }
 
 .confirm-delete p {
   margin-bottom: 2rem;
-  color: var(--text-secondary);
+  color: #666666;
 }
 
 .confirm-actions {
@@ -551,25 +683,25 @@ export default {
   border-radius: 4px;
   cursor: pointer;
   font-size: 1rem;
-  transition: var(--transition-standard);
+  transition: all 0.3s ease;
 }
 
 .btn-cancel {
-  background: var(--bg-elevated);
-  color: var(--text-primary);
+  background: #f5f5f5;
+  color: #666666;
 }
 
 .btn-confirm {
-  background: var(--error-color);
+  background: #ff4444;
   color: white;
 }
 
 .btn-cancel:hover {
-  background: var(--bg-secondary-hover);
+  background: #e0e0e0;
 }
 
 .btn-confirm:hover {
-  background: var(--error-color-hover);
+  background: #ff6666;
 }
 
 @media (max-width: 768px) {
@@ -587,6 +719,20 @@ export default {
   .modal-content {
     padding: 1.5rem;
     width: 95%;
+  }
+
+  .actions-table th,
+  .actions-table td {
+    padding: 0.75rem;
+  }
+
+  .image-cell {
+    width: 60px;
+  }
+
+  .thumb-image {
+    width: 50px;
+    height: 50px;
   }
 }
 </style>
