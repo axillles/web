@@ -28,7 +28,7 @@
 <script>
 import OrdersManager from './components/OrdersManager.vue'
 import OrdersStatistics from './components/OrdersStatistics.vue'
-import PromotionsManager from './components/PromotionsManager.vue'
+import PromotionsManager from '@/components/admin/PromotionsManager.vue'
 import ActionsManager from './components/ActionsManager.vue'
 import ServicesManager from './components/ServicesManager.vue'
 import UsersManager from './components/UsersManager.vue'
